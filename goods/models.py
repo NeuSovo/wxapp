@@ -68,6 +68,7 @@ class GoodsProfile(models.Model):
     class Meta:
         verbose_name = "GoodsProfile"
         verbose_name_plural = "GoodsProfiles"
+        ordering = ['goods']
 
     def __str__(self):
         return str(self.goods)
