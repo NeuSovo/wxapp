@@ -25,7 +25,7 @@ SECRET_KEY = '(_39lz2ne1ped8a0!%o_(vwv+-!be1hdp9hbkz0aqm874!$9ag'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,13 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'simditor',
+    'user',
+    'goods'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -103,9 +107,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -118,3 +122,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR + '/static'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_URL = '/media/'
+
+SIMDITOR_UPLOAD_PATH = 'uploads/'
+SIMDITOR_IMAGE_BACKEND = 'pillow'
+
+SIMDITOR_TOOLBAR = [
+    'title', 'bold', 'italic', 'underline', 'strikethrough', 'fontScale', 'color', '|',
+    'ol', 'ul', 'blockquote', '|',
+    'link', 'image', 'hr', '|',
+    'indent', 'outdent', 'alignment', 'fullscreen',
+]
+
+SIMDITOR_CONFIGS = {
+    'toolbar': SIMDITOR_TOOLBAR,
+    'upload': {
+        'url': '/simditor/upload/',
+        'fileKey': 'upload'
+    },
+    'emoji': {
+        'imagePath': '/static/simditor/images/emoji/'
+    },
+    'is_api': True,
+}

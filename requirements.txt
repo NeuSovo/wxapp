@@ -1,3 +1,7 @@
 django
 git+https://github.com/zxh326/django-simple-serializer.git
+git+https://github.com/istommao/django-simditor.git
+requests
 redis
+Pillow
+tenacity
