@@ -40,7 +40,8 @@ INSTALLED_APPS = [
 
     'simditor',
     'user',
-    'goods'
+    'goods',
+    'order',
 ]
 
 MIDDLEWARE = [
