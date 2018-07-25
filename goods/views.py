@@ -1,20 +1,22 @@
 from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.generic import DetailView, FormView, ListView
+from django.http import JsonResponse, Http404
+from django.views.generic import DetailView, FormView, ListView, View
 from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
                        MultipleJsonResponseMixin)
+from django.utils.translation import gettext as _
+
 from dss.Serializer import serializer
 
 from .models import *
-# Create your views here.
-
+from user.tools import wxapp_redis
+from user.auth import CheckUserWrap
 
 class GoodsListView(MultipleJsonResponseMixin, ListView):
     model = GoodsProfile
     paginate_by = 15
     foreign = True
 
-    exclude_attr = ('id',)
+    # exclude_attr = ('id',)
 
     def get_queryset(self):
         kwargs = {
@@ -38,7 +40,6 @@ class GoodsListView(MultipleJsonResponseMixin, ListView):
         if ordering:
             ordering = ordering if ordertype else '-' + ordering
             queryset = queryset.order_by(ordering)
-            print (queryset.query)
         return queryset
 
     def get_order_param(self, ordering):
@@ -50,13 +51,13 @@ class GoodsListView(MultipleJsonResponseMixin, ListView):
         return None
 
 
-class GoodsDetailView(JsonResponseMixin, DetailView):
+class GoodsDetailView(JsonResponseMixin, DetailView, CheckUserWrap):
     model = GoodsDetail
     foreign = True
     many = True
     datetime_type = 'string'
-    pk_url_kwarg = 'id'
-    exclude_attr = ('id',)
+    pk_url_kwarg = 'goods_id'
+    # exclude_attr = ('id',)
 
     def get_context_data(self, **kwargs):
         context = super(GoodsDetailView, self).get_context_data(**kwargs)
@@ -65,7 +66,68 @@ class GoodsDetailView(JsonResponseMixin, DetailView):
             'view_count': self.object.goods.goodsprofile.view_count,
             'love_count': self.object.goods.goodsprofile.love_count
         }
+        self.update_view()
         return context
+
+    def update_view(self):
+        """
+        redis 更新浏览量， 定时任务数据落地
+        每个用户 每天浏览多次只记录一次，
+        用户鉴权不通过的不计入
+        """
+        if self.wrap_check_token_result():
+            user_key = ':'.join(['wxapp', 'goodsview', 'user', str(self.user.openid), str(self.object.goods.id)])
+            view_key = ':'.join(['wxapp', 'goodsview', 'view_count'])
+            if not wxapp_redis.exists(user_key):
+                wxapp_redis.zincrby(view_key, self.object.goods.id)
+                wxapp_redis.set(user_key, 1, ex=25 * 3600)
+
+
+class LoveGoodsView(JsonResponseMixin, View, CheckUserWrap):
+    model = Goods
+    pk_url_kwarg = 'goods_id'
+
+    def get(self, request, *args, **kwargs):
+        self.get_object()
+        info = {}
+        key = ':'.join(['wxapp', 'goodslove', str(self.obj.id)])
+        if not self.wrap_check_token_result():
+            return self.render_to_response({'msg': self.msg})
+
+        love_users = []
+        if wxapp_redis.exists(key):
+            user_keys = wxapp_redis.hkeys(key)
+            for i in user_keys:
+                love_users.append(eval(wxapp_redis.hget(key, i.decode("utf-8"))))
+
+        info['love_users'] = love_users
+        info['is_love'] = wxapp_redis.hexists(key, self.user.openid)
+
+        return self.render_to_response(info)
+
+    def post(self, request, *args, **kwargs):
+        self.get_object()
+        if not self.wrap_check_token_result():
+            return self.render_to_response({'msg': self.msg})
+
+        key = ':'.join(['wxapp', 'goodslove', str(self.obj.id)])
+        if not wxapp_redis.hexists(key, self.user.openid):
+            wxapp_redis.hset(key, self.user.openid, serializer(self.user, exclude_attr=('reg_date', 'last_login', 'openid')))
+            
+        return self.get(request, *args, **kwargs)
+
+    def get_object(self):
+        pk = self.kwargs.get(self.pk_url_kwarg)
+        
+        queryset = self.model._default_manager.all()
+        queryset = queryset.filter(pk=pk)
+
+        try:
+            self.obj = queryset.get()
+        except queryset.model.DoesNotExist:
+            raise Http404(_("No %(verbose_name)s found matching the query") %
+                          {'verbose_name': queryset.model._meta.verbose_name})
+        return self.obj
 
 
 def all_category_view(request):

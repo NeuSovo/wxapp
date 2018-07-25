@@ -11,7 +11,8 @@ class User(models.Model):
     def __str__(self):
         return self.nick_name
 
-    openid = models.CharField(max_length=50, primary_key=True)
+    id = models.AutoField(primary_key=True)
+    openid = models.CharField(max_length=50, unique=True)
     nick_name = models.CharField(max_length=100, null=True, blank=True)
     avatar_url = models.URLField(null=True, blank=True)
     reg_date = models.DateTimeField(auto_now_add=True)

@@ -59,7 +59,7 @@ class GoodsDetail(models.Model):
     def __str__(self):
         return str(self.goods)
 
-    goods = models.OneToOneField(Goods, on_delete=models.CASCADE)
+    goods = models.OneToOneField(Goods, on_delete=models.CASCADE, primary_key=True)
     detail = RichTextField(verbose_name='介绍', default='无')
 
 
@@ -73,7 +73,7 @@ class GoodsProfile(models.Model):
     def __str__(self):
         return str(self.goods)
 
-    goods = models.OneToOneField(Goods, on_delete=models.CASCADE)
+    goods = models.OneToOneField(Goods, on_delete=models.CASCADE, primary_key=True)
     sale_count = models.IntegerField(verbose_name='销售量', default=0)
     view_count = models.IntegerField(verbose_name='浏览量', default=0)
     love_count = models.IntegerField(verbose_name='点赞量', default=0)
