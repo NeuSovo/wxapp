@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from simditor.fields import RichTextField
 # Create your models here.
 
@@ -18,8 +19,8 @@ class CateGory(models.Model):
 class Goods(models.Model):
 
     class Meta:
-        verbose_name = "Goods"
-        verbose_name_plural = "Goodss"
+        verbose_name = "商品"
+        verbose_name_plural = "商品"
         ordering = ['top','-update_time', '-create_time']
 
     goods_status_choices = (
@@ -44,10 +45,14 @@ class Goods(models.Model):
     goods_status = models.IntegerField(verbose_name='商品状态', choices=goods_status_choices, default=1)
     inventory = models.IntegerField(verbose_name='库存', default=0)
     top = models.IntegerField(verbose_name='置顶方案', choices=top_choices,default=2)
-
-    pintuan = models.IntegerField(verbose_name='拼团人数', default=1, help_text='默认为1,即不参与拼团，<br>设置为几，即为几人团 。<br> 如设为3，则为三人团')
-    pintuan_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='拼团价', help_text='如果拼团人数为1 此项无效', null=True, blank=True)
     goods_desc = models.TextField(null=True, blank=True, verbose_name='简单描述')
+
+    def is_pintuan(self):
+        pintuan = PinTuanGoods.objects.filter(goods=self)
+        if pintuan.exists():
+            pintuan = pintuan.get()
+            return timezone.now() >= pintuan.begin_time and timezone.now() <= pintuan.end_time
+        return False
 
 
 class GoodsDetail(models.Model):
@@ -77,3 +82,22 @@ class GoodsProfile(models.Model):
     sale_count = models.IntegerField(verbose_name='销售量', default=0)
     view_count = models.IntegerField(verbose_name='浏览量', default=0)
     love_count = models.IntegerField(verbose_name='点赞量', default=0)
+
+
+class PinTuanGoods(models.Model):
+
+    class Meta:
+        verbose_name = "PinTuanGoods"
+        verbose_name_plural = "PinTuanGoodss"
+
+    def __str__(self):
+        return str(self.goods)
+
+    goods = models.OneToOneField(Goods, on_delete=models.CASCADE, primary_key=True)
+    pintuan_count = models.IntegerField(verbose_name='拼团人数', default=2)
+    pintuan_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='拼团价')
+    effective = models.IntegerField(default=24, verbose_name='成团有效时间', help_text='单位是小时，成团必须在有效时间内达成拼团，否则拼团失败')
+    begin_time = models.DateTimeField(default=timezone.now, verbose_name='开始时间')
+    end_time = models.DateTimeField(default=timezone.now, verbose_name='结束时间')
+
+    participate_count  = models.IntegerField(default=0, verbose_name='参与人数')
