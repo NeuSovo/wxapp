@@ -71,9 +71,13 @@ class SimpleOrder(BaseOrder):
         tmp_order.order_remarks = kwargs.get('order_remarks') or ''
         tmp_order.total_price = 0
         tmp_order.order_id = tmp_order.gen_orderid()
+
         goods_list = kwargs.get('goods_list') or []
         if not len(goods_list):
             return '下单商品为空'
+
+        if len(goods_list) != 1 and is_pintuan:
+            return '只能参与拼团一个商品'
 
         goods_detail_list = []
         tmp_goods_id = []
@@ -93,6 +97,8 @@ class SimpleOrder(BaseOrder):
 
             # 拼团数量只能为1
             goods_count = int(i.get('goods_count') or 1)
+            if goods_count != 1 and is_pintuan:
+                return '拼团只能拼一件'
 
             # 查库存
             if goods.inventory < goods_count or goods_count == 0:
@@ -133,30 +139,55 @@ class PintuanOrder(BaseOrder):
     def __str__(self):
         return self.pintuan_id
 
-    pintuan_id = models.BigIntegerField(primary_key=True, verbose_name='拼团id')
+    pintuan_id = models.CharField(max_length=20, primary_key=True, verbose_name='拼团id')
     pintuan_goods = models.ForeignKey(PinTuanGoods, on_delete=models.SET_NULL, null=True, verbose_name='拼团商品')
+
+    def gen_pintuan_id(self):
+        return 'PT' + str(timezone.now().strftime("%Y%m%d")) + str(self.pintuan_goods.id) + str(random.randint(1000, 9999))
+
+    def save(self, *args, **kwargs):
+        if not self.pintuan_id:
+            self.pintuan_id = self.gen_pintuan_id()
+        return super().save(*args, **kwargs)
+
+    def is_effective(self):
+        """
+        根据当前时间 是否在于 拼团创建时间 + 拼团商品设定的有效小时之内 
+        并且拼团人数self.pintuan_set.count() < self.pintuan_goods.pintuan_count
+        来决定是否可以继续参与拼团
+
+        对于已经发起平团还未拼团成功的，但是拼团商品结束时间已到，用户仍然可以继续参与拼团
+        """
+        pass
 
 
 class PinTuan(models.Model):
+    """
+    [todo]
+        拼团参与人数增加
+    """
     class Meta:
         verbose_name = "拼团单"
         verbose_name_plural = "拼团单"
     
     pintuan_order = models.ForeignKey(PintuanOrder, on_delete=models.CASCADE)
-    order = models.ForeignKey(SimpleOrder, on_delete=models.CASCADE)
+    simple_order = models.ForeignKey(SimpleOrder, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        super().save()
 
 
 class SimpleOrderDetail(models.Model):
 
     class Meta:
         verbose_name = "订单详细"
-        verbose_name_plural = "订单详细s"
+        verbose_name_plural = "订单详细"
         # unique_together = ('order', 'goods')
 
     def __str__(self):
         return str(self.order)
 
     order = models.ForeignKey(SimpleOrder, on_delete=models.CASCADE)
-    goods = models.ForeignKey(Goods, on_delete=models.SET_NULL, null=True)
+    goods = models.ForeignKey(Goods, on_delete=models.SET_NULL, null=True, verbose_name='商品')
     goods_count = models.IntegerField(default=1, verbose_name='下单数量')
     goods_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='下单价')

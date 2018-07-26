@@ -38,6 +38,45 @@ class SimpleOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
 
         return self.render_to_response({'order_info': order, 'detail': order.simpleorderdetail_set.all()})
 
+    def init_body(self):
+        try:
+            body = json.loads(self.request.body)
+        except Exception as e:
+            return False
+
+        self.body = body
+        return True
+
+
+class PinTuanOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
+
+    def get(self, request, *args, **kwargs) -> dict:
+        if not self.wrap_check_token_result():
+            return self.render_to_response({'msg': self.msg})
+
+    def post(self, request, *args, **kwargs) -> dict:
+        if not self.wrap_check_token_result():
+            return self.render_to_response({'msg': self.msg})
+
+        if not self.init_body():
+            return self.render_to_response({'msg': '请求数据格式错误'})
+        action = kwargs.get('action')
+
+        if action == 'new':
+            goods = self.get_pintuan_goods()
+            if not isinstance(goods, Goods):
+                return self.render_to_response({'msg': goods})
+            if goods.is_pintuan():
+                order = SimpleOrder.create(user=self.user, is_pintuan=True, **self.body)
+                if not isinstance(order, SimpleOrder):
+                    return self.render_to_response({'msg': order})
+                pintuan = PintuanOrder(pintuan_goods=goods.pintuangoods)
+                pintuan.save()
+                PinTuan(pintuan_order=pintuan, simple_order=order).save()
+            else:
+                return self.render_to_response({'msg': '商品已失效'})
+            return self.render_to_response({'msg': pintuan.pintuan_id})
+
 
     def init_body(self):
         try:
@@ -47,3 +86,12 @@ class SimpleOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
 
         self.body = body
         return True
+
+    def get_pintuan_goods(self):
+        try:
+            goods_id = self.body.get('goods_list')[0].get('goods_id')
+            goods = Goods.objects.get(id=goods_id)
+        except Exception as e:
+            return '商品id错误 '
+
+        return goods
