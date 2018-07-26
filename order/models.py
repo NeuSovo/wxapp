@@ -20,6 +20,7 @@ class BaseOrder(models.Model):
     order_id = models.BigIntegerField(primary_key=True)
     create_time = models.DateTimeField(auto_now_add=True)
     create_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    
     order_status = models.IntegerField(choices=order_status_choices, default=1)
 
     total_price = models.DecimalField(max_digits=6, decimal_places=2)

@@ -50,6 +50,11 @@ class GoodsListView(MultipleJsonResponseMixin, ListView):
 
         return None
 
+    def get_context_data(self, **kwargs):
+        context = super(GoodsListView, self).get_context_data(**kwargs)
+        print (context)
+        return context
+
 
 class GoodsDetailView(JsonResponseMixin, DetailView, CheckUserWrap):
     model = GoodsDetail
