@@ -4,6 +4,11 @@ from django.contrib import admin
 from .models import *
 
 
+class SimpleOrderDetail(admin.TabularInline):
+    model = SimpleOrderDetail
+    extra = 2
+
+
 @admin.register(SimpleOrder)
 class SimpleOrderAdmin(admin.ModelAdmin):
     '''
@@ -11,9 +16,9 @@ class SimpleOrderAdmin(admin.ModelAdmin):
     '''
     list_display = ('order_id', 'order_type', 'order_status', 'create_time', 'create_user')
     list_filter = ('order_type', 'order_status', 'create_time')
-    # inlines = [
-    #     Inline,
-    # ]
+    inlines = [
+        SimpleOrderDetail,
+    ]
     # raw_id_fields = ('',)
     readonly_fields = ('order_id', 'done_time', 'create_time')
     # search_fields = ('',)
