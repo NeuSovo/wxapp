@@ -70,7 +70,7 @@ class PinTuanOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
                 order = SimpleOrder.create(user=self.user, is_pintuan=True, **self.body)
                 if not isinstance(order, SimpleOrder):
                     return self.render_to_response({'msg': order})
-                pintuan = PintuanOrder(pintuan_goods=goods.pintuangoods)
+                pintuan = PintuanOrder(pintuan_goods=goods.pintuangoods, create_user=self.user)
                 pintuan.save()
                 PinTuan(pintuan_order=pintuan, simple_order=order).save()
             else:

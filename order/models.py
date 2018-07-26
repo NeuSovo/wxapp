@@ -50,7 +50,7 @@ class SimpleOrder(BaseOrder):
     tracking_number = models.BigIntegerField(null=True, blank=True, verbose_name='快递单号')
 
     def save(self, *args, **kwargs):
-        if self.order_id == None:
+        if not self.order_id:
             self.order_id = self.gen_orderid()
         return super().save(*args, **kwargs)
 
@@ -143,7 +143,7 @@ class PintuanOrder(BaseOrder):
     pintuan_goods = models.ForeignKey(PinTuanGoods, on_delete=models.SET_NULL, null=True, verbose_name='拼团商品')
 
     def gen_pintuan_id(self):
-        return 'PT' + str(timezone.now().strftime("%Y%m%d")) + str(self.pintuan_goods.id) + str(random.randint(1000, 9999))
+        return 'PT' + str(timezone.now().strftime("%Y%m%d")) + str(self.pintuan_goods.goods.id) + str(random.randint(1000, 9999))
 
     def save(self, *args, **kwargs):
         if not self.pintuan_id:

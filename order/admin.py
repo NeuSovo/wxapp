@@ -8,6 +8,21 @@ class SimpleOrderDetail(admin.TabularInline):
     model = SimpleOrderDetail
     extra = 2
 
+class PinTuanDetail(admin.StackedInline):
+    model = PinTuan
+    extra = 2
+
+    def get_extra(self, request, obj=None, **kwargs):
+        """Hook for customizing the number of extra inline forms."""
+        if obj:
+            return obj.pintuan_goods.pintuan_count - obj.pintuan_set.count()
+        return self.extra
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        """Hook for customizing the max number of extra inline forms."""
+        if obj:
+            return obj.pintuan_goods.pintuan_count
+
 
 @admin.register(SimpleOrder)
 class SimpleOrderAdmin(admin.ModelAdmin):
@@ -30,11 +45,9 @@ class PintuanOrderAdmin(admin.ModelAdmin):
     '''
     list_display = ('pintuan_id', 'pintuan_goods')
     # list_filter = ('',)
-    # inlines = [
-    #     Inline,
-    # ]
+    inlines = [
+        PinTuanDetail,
+    ]
     # raw_id_fields = ('',)
-    readonly_fields = ('pintuan_id',)
+    readonly_fields = ('pintuan_id', 'create_time', 'done_time')
     # search_fields = ('',)
-
-admin.site.register(PinTuan)
