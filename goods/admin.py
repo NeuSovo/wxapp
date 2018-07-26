@@ -79,10 +79,6 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
         if timezone.now() > obj.end_time:
             return u'已结束'
 
-    def get_readonly_fields(self, request, obj=None):
-        pass
-
-
     get_pintuan_count.short_description = u'拼团人数'
     get_pintuan_status.short_description = u'拼团状态'
     list_display = ('goods', 'get_pintuan_count', 'pintuan_price', 'get_pintuan_status')
@@ -91,7 +87,7 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
     #     Inline,
     # ]
     # raw_id_fields = ('',)
-    # readonly_fields = ('',)
+    readonly_fields = ('participate_count',)
     # search_fields = ('',)
 
 admin.site.register(CateGory)

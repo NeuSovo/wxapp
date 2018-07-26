@@ -45,10 +45,10 @@ class Goods(models.Model):
     goods_status = models.IntegerField(verbose_name='商品状态', choices=goods_status_choices, default=1)
     inventory = models.IntegerField(verbose_name='库存', default=0)
     top = models.IntegerField(verbose_name='置顶方案', choices=top_choices,default=2)
-
-    pintuan = models.IntegerField(verbose_name='拼团人数', default=1, help_text='默认为1,即不参与拼团，<br>设置为几，即为几人团 。<br> 如设为3，则为三人团')
-    pintuan_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='拼团价', help_text='如果拼团人数为1 此项无效', null=True, blank=True)
     goods_desc = models.TextField(null=True, blank=True, verbose_name='简单描述')
+
+    def is_pintuan(self):
+        return PinTuanGoods.objects.filter(goods=self).exists()
 
 
 class GoodsDetail(models.Model):
@@ -95,3 +95,5 @@ class PinTuanGoods(models.Model):
     effective = models.IntegerField(default=24, verbose_name='成团有效时间', help_text='单位是小时，成团必须在有效时间内达成拼团，否则拼团失败')
     begin_time = models.DateTimeField(default=timezone.now, verbose_name='开始时间')
     end_time = models.DateTimeField(default=timezone.now, verbose_name='结束时间')
+    
+    participate_count  = models.IntegerField(default=0, verbose_name='参与人数')
