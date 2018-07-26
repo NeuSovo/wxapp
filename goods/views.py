@@ -86,6 +86,7 @@ class GoodsDetailView(JsonResponseMixin, DetailView, CheckUserWrap):
     datetime_type = 'string'
     pk_url_kwarg = 'goods_id'
     # exclude_attr = ('id',)
+    datetime_format = 'string'
 
     def get_context_data(self, **kwargs):
         context = super(GoodsDetailView, self).get_context_data(**kwargs)
@@ -94,6 +95,9 @@ class GoodsDetailView(JsonResponseMixin, DetailView, CheckUserWrap):
             'view_count': self.object.goods.goodsprofile.view_count,
             'love_count': self.object.goods.goodsprofile.love_count
         }
+        context['is_pintuan'] = self.object.goods.is_pintuan()
+        context['pintuan_info'] = serializer(self.object.goods.pintuangoods, exclude_attr=('goods', 'goods_id'), 
+            datetime_format=self.datetime_format) if context['is_pintuan'] else {}
         self.update_view()
         return context
 

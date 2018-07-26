@@ -48,7 +48,11 @@ class Goods(models.Model):
     goods_desc = models.TextField(null=True, blank=True, verbose_name='简单描述')
 
     def is_pintuan(self):
-        return PinTuanGoods.objects.filter(goods=self).exists()
+        pintuan = PinTuanGoods.objects.filter(goods=self)
+        if pintuan.exists():
+            pintuan = pintuan.get()
+            return timezone.now() >= pintuan.begin_time and timezone.now() <= pintuan.end_time
+        return False
 
 
 class GoodsDetail(models.Model):
@@ -95,5 +99,5 @@ class PinTuanGoods(models.Model):
     effective = models.IntegerField(default=24, verbose_name='成团有效时间', help_text='单位是小时，成团必须在有效时间内达成拼团，否则拼团失败')
     begin_time = models.DateTimeField(default=timezone.now, verbose_name='开始时间')
     end_time = models.DateTimeField(default=timezone.now, verbose_name='结束时间')
-    
+
     participate_count  = models.IntegerField(default=0, verbose_name='参与人数')
