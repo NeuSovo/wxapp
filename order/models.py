@@ -1,5 +1,5 @@
 import random
-
+from datetime import timedelta
 from django.db import models
 from django.utils import timezone
 
@@ -25,8 +25,7 @@ class SimpleOrder(BaseOrder):
         (0, '普通订单'),
         (1, '团购订单')
     )
-        # [todo] 
-    # 退款，运费，优惠卷
+    # [TODO] 退款，运费，优惠卷
     order_status_choices = (
         (-1, '取消'),
         (1, '待发货'),
@@ -37,7 +36,7 @@ class SimpleOrder(BaseOrder):
     def __str__(self):
         return str(self.order_id)
 
-    order_id = models.BigIntegerField(primary_key=True, verbose_name='订单id')
+    order_id = models.BigIntegerField(primary_key=True, verbose_name='订单编号')
     order_type = models.IntegerField(choices=order_type_choices ,default=0,verbose_name='订单类型') 
     order_status = models.IntegerField(choices=order_status_choices, default=1, verbose_name='订单状态')
     total_price = models.DecimalField(max_digits=6, decimal_places=2, verbose_name='总价')
@@ -87,7 +86,7 @@ class SimpleOrder(BaseOrder):
                 if goods.id in tmp_goods_id:
                     return '重复提交商品id'
             except Exception as e:
-                return '商品id错误'
+                return '商品编号错误'
 
             tmp_goods_id.append(goods.id)
 
@@ -139,7 +138,7 @@ class PintuanOrder(BaseOrder):
     def __str__(self):
         return self.pintuan_id
 
-    pintuan_id = models.CharField(max_length=20, primary_key=True, verbose_name='拼团id')
+    pintuan_id = models.CharField(max_length=20, primary_key=True, verbose_name='拼团编号')
     pintuan_goods = models.ForeignKey(PinTuanGoods, on_delete=models.SET_NULL, null=True, verbose_name='拼团商品')
 
     def gen_pintuan_id(self):
@@ -158,20 +157,81 @@ class PintuanOrder(BaseOrder):
 
         对于已经发起平团还未拼团成功的，但是拼团商品结束时间已到，用户仍然可以继续参与拼团
         """
-        pass
+        is_expire = timezone.now() > self.create_time + timedelta(hours=int(self.pintuan_goods.effective))
+        is_full = self.pintuan_set.count() == self.pintuan_goods.pintuan_count
+        if is_expire and not is_full:
+            return False, '该团已失效'
+
+        if is_full:
+            return False, '该团已拼团成功'
+
+        if not is_full and not is_expire:
+            return True, '正在拼团'
+
+    @staticmethod
+    def create(user=None, is_new=False, pintuan_id=None, *args, **kwargs):
+        if not isinstance(user, User):
+            return False, '用户错误'
+        try:
+            goods_id = kwargs.get('goods_list')[0].get('goods_id')
+            goods = Goods.objects.get(id=goods_id)
+        except Exception as e:
+            return '商品编号错误 '
+
+        # 新团
+        # 创建拼团单,并创建开团人订单
+        # [TODO] 是否限制某个用户对单个拼团商品下单数!
+        if is_new:
+            if goods.is_pintuan():
+                order = SimpleOrder.create(user=user, is_pintuan=True, **kwargs)
+                if not isinstance(order, SimpleOrder):
+                    return order
+                pintuan = PintuanOrder(pintuan_goods=goods.pintuangoods, create_user=user)
+                pintuan.save()
+                PinTuan(pintuan_order=pintuan, simple_order=order).save()
+                return pintuan
+            else:
+                return '商品已失效'
+
+        # 用户参团,只创建订单
+        try:
+            pintuan = PintuanOrder.objects.get(pintuan_id=pintuan_id)
+        except Exception as e:
+            return '拼团编号错误'
+
+        # 查看该团是否能够加入
+        status, msg = pintuan.is_effective()
+        if not status:
+            return msg
+
+        # 确保用户没有重复参与
+        if pintuan.pintuan_set.filter(simple_order__create_user=user).exists():
+            return '重复参团'
+
+        # 创建普通订单
+        order = SimpleOrder.create(user=user, is_pintuan=True, **kwargs)
+        if not isinstance(order, SimpleOrder):
+            return order
+
+        PinTuan(pintuan_order=pintuan, simple_order=order).save()
+
+        # 如果参团完成,设置完成时间
+        if pintuan.pintuan_set.count() == pintuan.pintuan_goods.pintuan_count:
+            pintuan.done_time = timezone.now()
+            pintuan.save()
+        return pintuan
 
 
 class PinTuan(models.Model):
     """
-    [todo]
-        拼团参与人数增加
+    [TODO] 拼团参与人数增加
     """
     class Meta:
-        verbose_name = "拼团单"
-        verbose_name_plural = "拼团单"
+        verbose_name = "参团订单"
+        verbose_name_plural = "参团订单"
     
     pintuan_order = models.ForeignKey(PintuanOrder, on_delete=models.CASCADE)
-    simple_order = models.ForeignKey(SimpleOrder, on_delete=models.CASCADE)
+    simple_order = models.ForeignKey(SimpleOrder, on_delete=models.CASCADE, verbose_name='订单')
 
     def save(self, *args, **kwargs):
         super().save()

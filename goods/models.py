@@ -87,17 +87,18 @@ class GoodsProfile(models.Model):
 class PinTuanGoods(models.Model):
 
     class Meta:
-        verbose_name = "PinTuanGoods"
-        verbose_name_plural = "PinTuanGoodss"
+        verbose_name = "拼团商品"
+        verbose_name_plural = "拼团商品"
 
     def __str__(self):
         return str(self.goods)
 
-    goods = models.OneToOneField(Goods, on_delete=models.CASCADE, primary_key=True)
+    goods = models.OneToOneField(Goods, verbose_name='商品', on_delete=models.CASCADE, primary_key=True, limit_choices_to={'goods_status': 1}, help_text='<h4>如果对于已经失效的拼团商品你想重新发起，<br>请直接调整失效拼团商品的开始时间和结束时间即可</h4>')
     pintuan_count = models.IntegerField(verbose_name='拼团人数', default=2)
     pintuan_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='拼团价')
     effective = models.IntegerField(default=24, verbose_name='成团有效时间', help_text='单位是小时，成团必须在有效时间内达成拼团，否则拼团失败')
     begin_time = models.DateTimeField(default=timezone.now, verbose_name='开始时间')
     end_time = models.DateTimeField(default=timezone.now, verbose_name='结束时间')
 
+    # [TODO] 动态加入
     participate_count  = models.IntegerField(default=0, verbose_name='参与人数')

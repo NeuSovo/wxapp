@@ -8,6 +8,13 @@ class SimpleOrderDetail(admin.TabularInline):
     model = SimpleOrderDetail
     extra = 2
 
+    def get_max_num(self, request, obj=None, **kwargs):
+        """Hook for customizing the max number of extra inline forms."""
+        if obj:
+            if obj.order_type == 1:
+                return 1
+        return self.max_num
+
 class PinTuanDetail(admin.StackedInline):
     model = PinTuan
     extra = 2
@@ -43,8 +50,14 @@ class PintuanOrderAdmin(admin.ModelAdmin):
     '''
         Admin View for PintuanOrder
     '''
-    list_display = ('pintuan_id', 'pintuan_goods')
-    # list_filter = ('',)
+
+    def get_pintuan_status(self, obj):
+        status, msg = obj.is_effective()
+        return msg
+    get_pintuan_status.short_description = '拼团状态'
+
+    list_display = ('pintuan_id', 'pintuan_goods', 'get_pintuan_status')
+    list_filter = ('pintuan_goods', )
     inlines = [
         PinTuanDetail,
     ]
