@@ -18,6 +18,7 @@ class SimpleOrderDetail(admin.TabularInline):
 class PinTuanDetail(admin.StackedInline):
     model = PinTuan
     extra = 2
+    can_delete = False
 
     def get_extra(self, request, obj=None, **kwargs):
         """Hook for customizing the number of extra inline forms."""
@@ -62,5 +63,5 @@ class PintuanOrderAdmin(admin.ModelAdmin):
         PinTuanDetail,
     ]
     # raw_id_fields = ('',)
-    readonly_fields = ('pintuan_id', 'create_time', 'done_time')
+    readonly_fields = ('pintuan_id', 'create_time', 'done_time', 'expire_time')
     # search_fields = ('',)

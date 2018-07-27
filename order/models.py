@@ -134,11 +134,13 @@ class PintuanOrder(BaseOrder):
     class Meta:
         verbose_name = "拼团订单"
         verbose_name_plural = "拼团订单"
+        ordering = ('-create_time', )
 
     def __str__(self):
         return self.pintuan_id
 
     pintuan_id = models.CharField(max_length=20, primary_key=True, verbose_name='拼团编号')
+    expire_time = models.DateTimeField(verbose_name='过期时间')
     pintuan_goods = models.ForeignKey(PinTuanGoods, on_delete=models.SET_NULL, null=True, verbose_name='拼团商品')
 
     def gen_pintuan_id(self):
@@ -147,6 +149,7 @@ class PintuanOrder(BaseOrder):
     def save(self, *args, **kwargs):
         if not self.pintuan_id:
             self.pintuan_id = self.gen_pintuan_id()
+            self.expire_time = timezone.now() + timedelta(hours=int(self.pintuan_goods.effective))
         return super().save(*args, **kwargs)
 
     def is_effective(self):
@@ -157,7 +160,7 @@ class PintuanOrder(BaseOrder):
 
         对于已经发起平团还未拼团成功的，但是拼团商品结束时间已到，用户仍然可以继续参与拼团
         """
-        is_expire = timezone.now() > self.create_time + timedelta(hours=int(self.pintuan_goods.effective))
+        is_expire = timezone.now() > self.expire_time
         is_full = self.pintuan_set.count() == self.pintuan_goods.pintuan_count
         if is_expire and not is_full:
             return False, '该团已失效'
