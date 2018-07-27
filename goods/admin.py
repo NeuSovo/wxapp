@@ -18,8 +18,8 @@ class GoodsAdmin(admin.ModelAdmin):
     '''
         Admin View for Goods
     '''
-    list_display = ('id', 'name', 'category', 'now_price', 'top', )
-    list_filter = ('category', 'top', 'create_time')
+    list_display = ('id', 'name', 'category', 'now_price', 'top', 'goods_status')
+    list_filter = ('category', 'top', 'create_time', 'goods_status')
     search_fields = ('name',)
     readonly_fields = ('create_time', 'update_time',)
 
@@ -68,6 +68,9 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
 
     def get_pintuan_count(self, obj):
         return str(obj.pintuan_count) + '人团'
+
+    def get_pintuan_price(self, obj):
+        return 
 
     def get_pintuan_status(self, obj):
         if timezone.now() < obj.begin_time:
