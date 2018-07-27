@@ -90,7 +90,7 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
     #     Inline,
     # ]
     # raw_id_fields = ('',)
-    readonly_fields = ('participate_count',)
+    # readonly_fields = ('',)
     # search_fields = ('',)
 
 admin.site.register(CateGory)

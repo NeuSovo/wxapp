@@ -101,4 +101,4 @@ class PinTuanGoods(models.Model):
     end_time = models.DateTimeField(default=timezone.now, verbose_name='结束时间')
 
     # [TODO] 动态加入
-    participate_count  = models.IntegerField(default=0, verbose_name='参与人数')
+    # participate_count  = models.IntegerField(default=0, verbose_name='参与人数')

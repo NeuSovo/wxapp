@@ -71,8 +71,12 @@ class GoodsListView(MultipleJsonResponseMixin, ListView):
                 'love_count': i.goodsprofile.love_count,
             }
             info['is_pintuan'] = i.is_pintuan()
-            info['pintuan_info'] = serializer(i.pintuangoods, exclude_attr=('goods', 'goods_id'), 
-                datetime_format=self.datetime_format) if info['is_pintuan'] else {}
+            if info['is_pintuan']:
+                info['pintuan_info'] = serializer(i.pintuangoods, exclude_attr=('goods', 'goods_id'), 
+                    datetime_format=self.datetime_format)
+                info['pintuan_info']['participate_count'] = i.pintuangoods.pintuanorder_set.count()
+            else:
+                info['pintuan_info'] = {}
             goods_list.append(info)
         context['goods_list'] = goods_list
         return context

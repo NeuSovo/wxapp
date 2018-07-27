@@ -18,6 +18,7 @@ class SimpleOrderDetail(admin.TabularInline):
 class PinTuanDetail(admin.StackedInline):
     model = PinTuan
     extra = 2
+    can_delete = False
 
     def get_extra(self, request, obj=None, **kwargs):
         """Hook for customizing the number of extra inline forms."""
