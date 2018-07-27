@@ -62,5 +62,5 @@ class PintuanOrderAdmin(admin.ModelAdmin):
         PinTuanDetail,
     ]
     # raw_id_fields = ('',)
-    readonly_fields = ('pintuan_id', 'create_time', 'done_time')
+    readonly_fields = ('pintuan_id', 'create_time', 'done_time', 'expire_time')
     # search_fields = ('',)

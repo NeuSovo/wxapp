@@ -81,8 +81,7 @@ class PinTuanOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
                     'reg_date', 'last_login', 'openid'), datetime_format=self.datetime_format)
         pintuan_info['join_count'] = len(join_user)
         pintuan_info['pintuan_count'] = pintaun_goods.pintuan_count
-        pintuan_info['expire_time'] = pintuan.create_time + timedelta(hours=int(pintaun_goods.effective))
-        pintuan_info['can_join'] = pintuan_info['join_count'] < pintuan_info['pintuan_count'] and timezone.now() < pintuan_info['expire_time']
+        pintuan_info['can_join'] = pintuan_info['join_count'] < pintuan_info['pintuan_count'] and timezone.now() < pintuan.expire_time
 
         # 参与拼团的基本商品信息
         pintuan_goods_info = serializer(pintaun_goods, exclude_attr=('pintuan_count', 'effective'), datetime_format=self.datetime_format)
