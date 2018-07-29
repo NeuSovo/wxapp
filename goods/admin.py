@@ -70,7 +70,7 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
         return str(obj.pintuan_count) + '人团'
 
     def get_pintuan_price(self, obj):
-        return 
+        return str(obj.pintuan_price) + ' / ' + str(obj.goods.now_price)
 
     def get_pintuan_status(self, obj):
         if timezone.now() < obj.begin_time:
@@ -82,9 +82,10 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
         if timezone.now() > obj.end_time:
             return u'已结束'
 
+    get_pintuan_price.short_description = u'拼团价 / 原价'
     get_pintuan_count.short_description = u'拼团人数'
     get_pintuan_status.short_description = u'拼团状态'
-    list_display = ('goods', 'get_pintuan_count', 'pintuan_price', 'get_pintuan_status')
+    list_display = ('goods', 'get_pintuan_count', 'get_pintuan_price', 'get_pintuan_status')
     list_filter = (PinTuanStatusFilter,)
     # inlines = [
     #     Inline,
