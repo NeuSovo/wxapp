@@ -130,6 +130,9 @@ class SimpleOrder(BaseOrder):
 
 
 class PintuanOrder(BaseOrder):
+    # [TODO] 拼团失效的订单进行退款 和设置订单状态
+    # 过滤条件
+    # 
 
     class Meta:
         verbose_name = "拼团订单"
@@ -178,8 +181,12 @@ class PintuanOrder(BaseOrder):
         try:
             goods_id = kwargs.get('goods_list')[0].get('goods_id')
             goods = Goods.objects.get(id=goods_id)
+            goods.pintuangoods
         except Exception as e:
-            return '商品编号错误 '
+            return '商品编号错误'
+
+        if SimpleOrderDetail.objects.filter(order__order_type=1, order__create_user=user, goods=goods).count() >= goods.pintuangoods.limit:
+            return '超过限制数量'
 
         # 新团
         # 创建拼团单,并创建开团人订单
@@ -197,6 +204,7 @@ class PintuanOrder(BaseOrder):
                 return '商品已失效'
 
         # 用户参团,只创建订单
+        # [TODO] 关于是否再次提交拼团商品!
         try:
             pintuan = PintuanOrder.objects.get(pintuan_id=pintuan_id)
         except Exception as e:

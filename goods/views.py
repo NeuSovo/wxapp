@@ -66,15 +66,15 @@ class GoodsListView(MultipleJsonResponseMixin, ListView):
             info = serializer(i, exclude_attr=('category_id',),
                               datetime_format=self.datetime_format)
             info['count'] = {
-                'view_count': i.goodsprofile.view_count,
+                'view_count': int(wxapp_redis.zscore("wxapp:goodsview:view_count", i.id) or 0),
                 'sale_count': i.goodsprofile.sale_count,
-                'love_count': i.goodsprofile.love_count,
+                'love_count': wxapp_redis.hlen("wxapp:goodslove:{}".format(i.id)),
             }
             info['is_pintuan'] = i.is_pintuan()
             if info['is_pintuan']:
                 info['pintuan_info'] = serializer(i.pintuangoods, exclude_attr=('goods', 'goods_id'), 
                     datetime_format=self.datetime_format)
-                info['pintuan_info']['participate_count'] = i.pintuangoods.pintuanorder_set.count()
+                info['pintuan_info']['participate_count'] = i.simpleorderdetail_set.filter(order__order_type=1).count()
             else:
                 info['pintuan_info'] = {}
             goods_list.append(info)
@@ -95,9 +95,12 @@ class GoodsDetailView(JsonResponseMixin, DetailView, CheckUserWrap):
     def get_context_data(self, **kwargs):
         context = super(GoodsDetailView, self).get_context_data(**kwargs)
         context['count'] = {
+            'view_count': int (wxapp_redis.zscore("wxapp:goodsview:view_count", self.object.pk) or 0) ,
             'sale_count': self.object.goods.goodsprofile.sale_count,
-            'view_count': self.object.goods.goodsprofile.view_count,
-            'love_count': self.object.goods.goodsprofile.love_count
+            'love_count': wxapp_redis.hlen("wxapp:goodslove:{}".format(self.object.pk)),
+            # 'sale_count': self.object.goods.goodsprofile.sale_count,
+            # 'view_count': self.object.goods.goodsprofile.view_count,
+            # 'love_count': self.object.goods.goodsprofile.love_count
         }
         context['is_pintuan'] = self.object.goods.is_pintuan()
         context['pintuan_info'] = serializer(self.object.goods.pintuangoods, exclude_attr=('goods', 'goods_id'), 
@@ -152,6 +155,8 @@ class LoveGoodsView(JsonResponseMixin, View, CheckUserWrap):
         if not wxapp_redis.hexists(key, self.user.openid):
             wxapp_redis.hset(key, self.user.openid, serializer(
                 self.user, exclude_attr=('reg_date', 'last_login', 'openid')))
+        else:
+            wxapp_redis.hdel(key, self.user.openid)
 
         return self.get(request, *args, **kwargs)
 

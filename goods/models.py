@@ -99,4 +99,5 @@ class PinTuanGoods(models.Model):
     effective = models.IntegerField(default=24, verbose_name='成团有效时间', help_text='单位是小时，成团必须在有效时间内达成拼团，否则拼团失败')
     begin_time = models.DateTimeField(default=timezone.now, verbose_name='开始时间')
     end_time = models.DateTimeField(default=timezone.now, verbose_name='结束时间')
+    limit = models.IntegerField(verbose_name='限制购买数量', default=1, help_text='限制用户对此拼团商品的购买数量, 如果为-1, 或者其他负数,则不限制')
     
