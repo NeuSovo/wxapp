@@ -1,10 +1,12 @@
 import random
 from datetime import timedelta
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 from user.models import User
 from goods.models import PinTuanGoods, Goods
+
+from .tasks import expire_pt_task
 
 class BaseOrder(models.Model):
 
@@ -117,8 +119,9 @@ class SimpleOrder(BaseOrder):
             tmp_order.total_price += (goods_price * goods_count)
 
         try:
-            tmp_order.save()
-            SimpleOrderDetail.objects.bulk_create(goods_detail_list)
+            with transaction.atomic():
+                tmp_order.save()
+                SimpleOrderDetail.objects.bulk_create(goods_detail_list)
         except Exception as e:
             return str(e)
 
@@ -197,8 +200,10 @@ class PintuanOrder(BaseOrder):
                 if not isinstance(order, SimpleOrder):
                     return order
                 pintuan = PintuanOrder(pintuan_goods=goods.pintuangoods, create_user=user)
+                # [TODO] with transaction.atomic():
                 pintuan.save()
                 PinTuan(pintuan_order=pintuan, simple_order=order).save()
+                expire_pt_task.apply_async((pintuan.pintuan_id, ), eta=pintuan.expire_time)
                 return pintuan
             else:
                 return '商品已失效'
