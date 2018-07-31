@@ -1,5 +1,5 @@
 import random
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -203,7 +203,7 @@ class PintuanOrder(BaseOrder):
                 # [TODO] with transaction.atomic():
                 pintuan.save()
                 PinTuan(pintuan_order=pintuan, simple_order=order).save()
-                expire_pt_task.apply_async((pintuan.pintuan_id, ), eta=pintuan.expire_time)
+                expire_pt_task.apply_async((pintuan.pintuan_id, ), eta=datetime.utcnow() + timedelta(hours=int(goods.pintuangoods.effective)))
                 return pintuan
             else:
                 return '商品已失效'
