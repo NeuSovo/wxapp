@@ -17,6 +17,6 @@ app = Celery(project_name)
  
 #使用django的settings文件配置celery
 app.config_from_object('django.conf:settings')
- 
+
 #Celery加载所有注册的应用
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)

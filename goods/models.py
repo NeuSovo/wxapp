@@ -39,6 +39,7 @@ class Goods(models.Model):
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
     name = models.CharField(max_length=120, verbose_name='商品名字')
+    goods_cover = models.ImageField(null=True, upload_to="goodscover", verbose_name='商品封面')
     category = models.ForeignKey(CateGory, on_delete=models.SET_NULL, null=True, verbose_name='分类')
     origin_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='原价')
     now_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='现价')

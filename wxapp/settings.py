@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+  
+  	'django_celery_results',
     'simditor',
     'user',
     'goods',
@@ -79,9 +80,17 @@ WSGI_APPLICATION = 'wxapp.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#    }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wxapp',
+        'USER': 'wxapp',
+        'PASSWORD': '123456',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
@@ -130,7 +139,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'
 
 BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# CELERY_IGNORE_RESULT = True
+CELERY_RESULT_BACKEND = 'django-cache'
 
 # celery内容等消息的格式设置
 CELERY_ACCEPT_CONTENT = ['application/json', ]
@@ -139,7 +150,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 1
 
 # celery时区设置，使用settings中TIME_ZONE同样的时区
-CELERY_TIMEZONE = 'UTC'
+CELERY_TIMEZONE = TIME_ZONE
 
 SIMDITOR_UPLOAD_PATH = 'uploads/'
 SIMDITOR_IMAGE_BACKEND = 'pillow'
