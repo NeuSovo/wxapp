@@ -3,7 +3,7 @@ anyjson
 git+https://github.com/zxh326/django-simple-serializer.git
 git+https://github.com/istommao/django-simditor.git
 requests
-celery-with-redis
+redis
 django-celery-results
 Pillow
 tenacity
