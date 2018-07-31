@@ -130,12 +130,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'
 
 BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'db+sqlite:///results.sqlite'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 # celery内容等消息的格式设置
 CELERY_ACCEPT_CONTENT = ['application/json', ]
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_RESULT_EXPIRES = 60 * 60 * 1
 
 # celery时区设置，使用settings中TIME_ZONE同样的时区
 CELERY_TIMEZONE = 'UTC'

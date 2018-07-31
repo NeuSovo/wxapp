@@ -6,6 +6,8 @@ from django.utils import timezone
 from user.models import User
 from goods.models import PinTuanGoods, Goods
 
+from .tasks import expire_pt_task
+
 class BaseOrder(models.Model):
 
     class Meta:
@@ -201,6 +203,7 @@ class PintuanOrder(BaseOrder):
                 # [TODO] with transaction.atomic():
                 pintuan.save()
                 PinTuan(pintuan_order=pintuan, simple_order=order).save()
+                expire_pt_task.apply_async((pintuan.pintuan_id, ), eta=pintuan.expire_time)
                 return pintuan
             else:
                 return '商品已失效'

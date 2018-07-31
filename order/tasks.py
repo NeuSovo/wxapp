@@ -1,6 +1,8 @@
 from django.utils import timezone
 from celery.decorators import task
 
+from .models import *
+
 """
 异步定时任务，来处理过期无效拼团订单
 example:
@@ -14,7 +16,28 @@ example:
 [TODO]: RETRY , Error handle
 """
 
+@task
+def update_order_status(order_id):
+    try:
+        order = SimpleOrder.objects.get(order_id=order_id)
+    except Exception as e:
+        raise ValueError
+
+    order.order_status = -1 
+    # [TODO] 退款，发通知，等
+    # do something
+
+    order.save()
+
 
 @task
-def test_task(self, info="test"):
-    return str(timezone.now())
+def expire_pt_task(pt_id = None):
+    try:
+        pt = PintuanOrder.objects.get(pintuan_id=pt_id)
+    except Exception as e:
+        return {'msg': 'error', 'id': pt_id}
+
+    if timezone.now() >= pt.expire_time and pt.done_time == None:
+        for i in pt.pintuan_set.all():
+            update_order_status.delay(order_id=i.simple_order_id)
+        return {'msg': 'ok', 'id': pt_id}
