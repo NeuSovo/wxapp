@@ -11,7 +11,6 @@ from order import tasks
 
 wx_pay = WeixinPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem') # 后两个参数可选
 
-
 class BaseOrder(models.Model):
 
     class Meta:

@@ -8,6 +8,7 @@ from django.views.generic import CreateView, ListView, View
 from django.utils import timezone
 
 from .models import *
+from .tasks import expire_pt_task
 from user.auth import CheckUserWrap
 
 class SimpleOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
