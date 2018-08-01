@@ -12,7 +12,8 @@ from .models import *
 from order.models import SimpleOrder, PintuanOrder
 # Create your views here.
 
-class LoginUserView(JsonResponseMixin, CreateView, UserWrap):
+
+class RegUserView(JsonResponseMixin, CreateView, UserWrap):
     model = User
 
     def post(self, request, *args, **kwargs) -> dict:
@@ -23,11 +24,20 @@ class LoginUserView(JsonResponseMixin, CreateView, UserWrap):
         if self.check_user_reg():
             token = self.gen_token(self.user)
             self.update_profile()
-            user = serializer(self.user)
+            # user = serializer(self.user)
             return self.render_to_response({'msg': 'success', 'user_obj': user, 'token': token})
         else:
             user, token = self.reg_user()
             return self.render_to_response({'msg': 'success', 'user_obj': user, 'token': token})
+
+
+class LoginUserView(JsonResponseMixin, View, CheckUserWrap):
+
+    def post(self, request, *args, **kwargs):
+        if not self.wrap_check_token_result():
+            return self.render_to_response({'msg': self.msg})
+
+        return self.render_to_response({'msg': 'success', 'user_obj': self.user})
 
 
 class UserOrderView(MultipleJsonResponseMixin, ListView, CheckUserWrap):

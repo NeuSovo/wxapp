@@ -6,8 +6,6 @@ from django.utils import timezone
 from user.models import User
 from goods.models import PinTuanGoods, Goods
 
-from .tasks import expire_pt_task
-
 class BaseOrder(models.Model):
 
     class Meta:
@@ -30,6 +28,7 @@ class SimpleOrder(BaseOrder):
     # [TODO] 退款，运费，优惠卷
     order_status_choices = (
         (-1, '取消'),
+        (0, '待支付'),
         (1, '待发货'),
         (2, '已发货'),
         (3, '已完成')
@@ -39,8 +38,8 @@ class SimpleOrder(BaseOrder):
         return str(self.order_id)
 
     order_id = models.BigIntegerField(primary_key=True, verbose_name='订单编号')
-    order_type = models.IntegerField(choices=order_type_choices ,default=0,verbose_name='订单类型') 
-    order_status = models.IntegerField(choices=order_status_choices, default=1, verbose_name='订单状态')
+    order_type = models.IntegerField(choices=order_type_choices ,default=0, verbose_name='订单类型') 
+    order_status = models.IntegerField(choices=order_status_choices, default=0, verbose_name='订单状态')
     total_price = models.DecimalField(max_digits=6, decimal_places=2, verbose_name='总价')
 
     receive_name  = models.CharField(max_length=50, verbose_name='收货人')
@@ -110,11 +109,11 @@ class SimpleOrder(BaseOrder):
                     goods_count=goods_count, goods_price=goods_price))
 
             # 减库存,加销量
-            # [TODO] 加入Task任务队列
-            goods.inventory -= goods_count
-            goods.goodsprofile.sale_count += goods_count
-            goods.save()
-            goods.goodsprofile.save()
+            # 支付后在操作
+            # goods.inventory -= goods_count
+            # goods.goodsprofile.sale_count += goods_count
+            # goods.save()
+            # goods.goodsprofile.save()
 
             tmp_order.total_price += (goods_price * goods_count)
 
@@ -126,6 +125,31 @@ class SimpleOrder(BaseOrder):
             return str(e)
 
         return tmp_order
+
+    def pay(self, success=False, *args, **kwargs):
+        if success:
+            # [TODO]微信支付成功的相关操作：
+            self.order_status = 1
+            self.save()
+        else:
+            self.delete()
+
+    def refund(self, *args, **kwargs):
+        # [TODO]微信退款的相关操作：
+        self.order_status = -1
+        self.save()
+
+    def sync_inventory(self, add=True):
+        try:
+            with transaction.atomic():
+                for i in self.simpleorderdetail_set.all():
+                    i.goods_count = i.goods_count if add else -(i.goods_count)
+                    i.inventory -= i.goods_count
+                    i.goodsprofile.sale_count += i.goods_count
+                    i.save()
+                    i.goodsprofile.save()
+        except Exception as e:
+            pass
 
     def gen_orderid(self):
         return timezone.now().strftime("%Y%m%d") + str(self.order_type) + str(self.create_user.id)[-1] + \
@@ -188,7 +212,7 @@ class PintuanOrder(BaseOrder):
         except Exception as e:
             return '商品编号错误'
 
-        if SimpleOrderDetail.objects.filter(order__order_type=1, order__create_user=user, goods=goods).count() >= goods.pintuangoods.limit:
+        if SimpleOrderDetail.objects.filter(order__order_type=1, order__create_user=user, goods=goods, order__order_status__gte=0).count() >= goods.pintuangoods.limit:
             return '超过限制数量'
 
         # 新团
@@ -203,13 +227,11 @@ class PintuanOrder(BaseOrder):
                 # [TODO] with transaction.atomic():
                 pintuan.save()
                 PinTuan(pintuan_order=pintuan, simple_order=order).save()
-                expire_pt_task.apply_async((pintuan.pintuan_id, ), eta=datetime.utcnow() + timedelta(hours=int(goods.pintuangoods.effective)))
                 return pintuan
             else:
                 return '商品已失效'
 
         # 用户参团,只创建订单
-        # [TODO] 关于是否再次提交拼团商品!
         try:
             pintuan = PintuanOrder.objects.get(pintuan_id=pintuan_id)
         except Exception as e:
@@ -232,9 +254,10 @@ class PintuanOrder(BaseOrder):
         PinTuan(pintuan_order=pintuan, simple_order=order).save()
 
         # 如果参团完成,设置完成时间
-        if pintuan.pintuan_set.count() == pintuan.pintuan_goods.pintuan_count:
-            pintuan.done_time = timezone.now()
-            pintuan.save()
+        # 支付后在操作
+        # if pintuan.pintuan_set.count() == pintuan.pintuan_goods.pintuan_count:
+        #     pintuan.done_time = timezone.now()
+        #     pintuan.save()
         return pintuan
 
 

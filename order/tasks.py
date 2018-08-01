@@ -1,7 +1,6 @@
 from django.utils import timezone
 from celery.decorators import task
-
-from .models import *
+from order.models import PintuanOrder, SimpleOrder
 
 """
 异步定时任务，来处理过期无效拼团订单
@@ -23,11 +22,8 @@ def update_order_status(order_id):
     except Exception as e:
         raise ValueError
 
-    order.order_status = -1 
-    # [TODO] 退款，发通知，等
-    # do something
-
-    order.save()
+    order.refund()
+    return order_id
 
 
 @task
@@ -35,7 +31,7 @@ def expire_pt_task(pt_id = None):
     try:
         pt = PintuanOrder.objects.get(pintuan_id=pt_id)
     except Exception as e:
-        return {'msg': 'error', 'id': pt_id}
+        return {'msg': 'error', 'id': pt_id, "info": str(e)}
 
     if timezone.now() >= pt.expire_time and pt.done_time == None:
         for i in pt.pintuan_set.all():

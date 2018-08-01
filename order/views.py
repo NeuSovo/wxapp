@@ -6,6 +6,7 @@ from django.utils import timezone
 from dss.Mixin import JsonResponseMixin
 from dss.Serializer import serializer
 from .models import *
+from .tasks import expire_pt_task
 from user.auth import CheckUserWrap
 
 class SimpleOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
@@ -105,6 +106,8 @@ class PinTuanOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
             pintuan = self.model.create(user=self.user, is_new=True, **self.body)
             if not isinstance(pintuan, self.model):
                 return self.render_to_response({'msg': pintuan})
+
+            expire_pt_task.apply_async((pintuan.pintuan_id, ), eta=datetime.utcnow() + timedelta(hours=int(pintuan.pintuan_goods.effective)))
             kwargs['action'] = pintuan.pintuan_id
             # [TODO] 设置参数 避免重复验证用户
             return self.get(request, *args, **kwargs)
