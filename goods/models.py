@@ -39,7 +39,7 @@ class Goods(models.Model):
     create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     update_time = models.DateTimeField(auto_now=True, verbose_name='更新时间')
     name = models.CharField(max_length=120, verbose_name='商品名字')
-    goods_cover = models.ImageField(null=True, upload_to="goodscover", verbose_name='商品封面')
+    goods_cover = models.ImageField(upload_to="goodscover", verbose_name='商品封面', default='none')
     category = models.ForeignKey(CateGory, on_delete=models.SET_NULL, null=True, verbose_name='分类')
     origin_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='原价')
     now_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='现价')
@@ -100,5 +100,5 @@ class PinTuanGoods(models.Model):
     effective = models.IntegerField(default=24, verbose_name='成团有效时间', help_text='单位是小时，成团必须在有效时间内达成拼团，否则拼团失败')
     begin_time = models.DateTimeField(default=timezone.now, verbose_name='开始时间')
     end_time = models.DateTimeField(default=timezone.now, verbose_name='结束时间')
-    limit = models.IntegerField(verbose_name='限制购买数量', default=1, help_text='限制用户对此拼团商品的购买数量, 如果为-1, 或者其他负数,则不限制')
+    limit = models.IntegerField(verbose_name='限制购买数量', default=1, help_text='限制用户对此拼团商品的购买数量, 如果为0, 或者其他负数,则不限制')
     
