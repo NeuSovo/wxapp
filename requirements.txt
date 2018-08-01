@@ -7,3 +7,4 @@ redis
 django-celery-results
 Pillow
 tenacity
+weixin-python

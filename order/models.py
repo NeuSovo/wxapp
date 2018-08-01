@@ -1,10 +1,15 @@
 import random
 from datetime import timedelta, datetime
+
+from weixin import WeixinPay, WeixinError
+
 from django.db import models, transaction
 from django.utils import timezone
-
 from user.models import User
 from goods.models import PinTuanGoods, Goods
+from order import tasks
+
+wx_pay = WeixinPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem') # 后两个参数可选
 
 class BaseOrder(models.Model):
 
@@ -48,6 +53,8 @@ class SimpleOrder(BaseOrder):
 
     order_remarks = models.TextField(null=True, blank=True, verbose_name='留言/备注')
     tracking_number = models.BigIntegerField(null=True, blank=True, verbose_name='快递单号')
+    transaction_id = models.CharField(max_length=32, null=True, blank=True, verbose_name='微信订单号')
+    pay_time = models.DateTimeField(null=True, blank=True, verbose_name='支付时间')
 
     def save(self, *args, **kwargs):
         if not self.order_id:
@@ -126,17 +133,23 @@ class SimpleOrder(BaseOrder):
 
         return tmp_order
 
-    def pay(self, success=False, *args, **kwargs):
+    def pay(self, *args, **kwargs):
+        success = kwargs.get('result_code') == 'SUCCESS'
         if success:
             # [TODO]微信支付成功的相关操作：
             self.order_status = 1
+            self.transaction_id = kwargs.get('transaction_id')
+            self.pay_time = datetime.strptime(kwargs.get('time_end'), '%Y%m%d%H%M%S')
             self.save()
+            self.sync_inventory()
         else:
             self.delete()
 
     def refund(self, *args, **kwargs):
         # [TODO]微信退款的相关操作：
+        # wx_pay.refund(out_trade_no=self.transaction_id)
         self.order_status = -1
+        self.sync_inventory(add=False)
         self.save()
 
     def sync_inventory(self, add=True):
@@ -212,12 +225,15 @@ class PintuanOrder(BaseOrder):
         except Exception as e:
             return '商品编号错误'
 
-        if SimpleOrderDetail.objects.filter(order__order_type=1, order__create_user=user, goods=goods, order__order_status__gte=0).count() >= goods.pintuangoods.limit:
-            return '超过限制数量'
+        # 限制购买措施，订单类型为拼团，同一用户，同一商品，状态>=0，都算为一个有效订单
+        # 商品设置限制数小于等于0 则不限制用户购买数量
+        t_limit = SimpleOrderDetail.objects.filter(order__order_type=1, order__create_user=user, goods=goods, order__order_status__gte=0).count()
+        if goods.pintuangoods.limit > 0:
+            if t_limit > goods.pintuangoods.limit:
+                return '超过限制数量'
 
         # 新团
         # 创建拼团单,并创建开团人订单
-        # [TODO] 是否限制某个用户对单个拼团商品下单数!
         if is_new:
             if goods.is_pintuan():
                 order = SimpleOrder.create(user=user, is_pintuan=True, **kwargs)
@@ -236,6 +252,10 @@ class PintuanOrder(BaseOrder):
             pintuan = PintuanOrder.objects.get(pintuan_id=pintuan_id)
         except Exception as e:
             return '拼团编号错误'
+
+        # 拼团编号与商品编号不对应
+        if pintuan.pintuan_goods != goods.pintuangoods:
+            return '拼团编号与商品编号不对应'
 
         # 查看该团是否能够加入
         status, msg = pintuan.is_effective()
@@ -260,6 +280,19 @@ class PintuanOrder(BaseOrder):
         #     pintuan.save()
         return pintuan
 
+    def pay(self, *args, **kwargs):
+        success = kwargs.get('result_code') == 'SUCCESS'
+        user = User.objects.get(openid=kwargs.get('openid'))
+        if success:
+            if self.pintuan_set.count() == self.pintuan_goods.pintuan_count:
+                self.done_time = timezone.now()
+                self.save()
+            if self.create_user == user:
+                tasks.expire_pt_task.apply_async((self.pintuan_id, ), eta=datetime.utcnow() + timedelta(hours=int(self.pintuan_goods.effective)))
+        else:
+            if self.create_user == user:
+                self.delete()
+
 
 class PinTuan(models.Model):
     """
@@ -270,7 +303,7 @@ class PinTuan(models.Model):
         verbose_name_plural = "参团订单"
     
     pintuan_order = models.ForeignKey(PintuanOrder, on_delete=models.CASCADE)
-    simple_order = models.ForeignKey(SimpleOrder, on_delete=models.CASCADE, verbose_name='订单')
+    simple_order = models.OneToOneField(SimpleOrder, on_delete=models.CASCADE, verbose_name='订单')
 
     def save(self, *args, **kwargs):
         super().save()

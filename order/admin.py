@@ -44,7 +44,7 @@ class SimpleOrderAdmin(admin.ModelAdmin):
         SimpleOrderDetail,
     ]
     # raw_id_fields = ('',)
-    readonly_fields = ('order_id', 'done_time', 'create_time')
+    readonly_fields = ('order_id', 'done_time', 'create_time', 'transaction_id', 'pay_time')
     # search_fields = ('',)
 
 @admin.register(PintuanOrder)
