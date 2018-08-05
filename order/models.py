@@ -25,6 +25,7 @@ class SimpleOrder(BaseOrder):
     class Meta:
         verbose_name = "普通订单"
         verbose_name_plural = "普通订单"
+        default_permissions = ('view',)
 
     order_type_choices = (
         (0, '普通订单'),
@@ -131,6 +132,7 @@ class SimpleOrder(BaseOrder):
         except Exception as e:
             return str(e)
 
+        tasks.delete_unpay_order.apply_async((tmp_order.order_id,), countdown=60 * 15)
         return tmp_order
 
     def pay(self, *args, **kwargs):
