@@ -49,7 +49,7 @@ def delete_unpay_order(order_id=None):
     except Exception as e:
         raise {'msg': 'order not exists', 'order_id': order_id}
 
-    if order.order_status != -1:
+    if order.order_status != 0:
         return 
     if order.order_type == 1:
         # 测试，如果是拼团的删除拼团单
