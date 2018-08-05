@@ -146,8 +146,8 @@ def pay_notify(request):
     """
     微信异步通知
     """
+
     data = wx_pay.to_dict(str(request.body))
-    print (data)
     if not wx_pay.check(data):
         return wx_pay.reply("签名验证失败", False)
 
