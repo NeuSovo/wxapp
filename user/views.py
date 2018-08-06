@@ -25,7 +25,7 @@ class RegUserView(JsonResponseMixin, CreateView, UserWrap):
             token = self.gen_token(self.user)
             self.update_profile()
             # user = serializer(self.user)
-            return self.render_to_response({'msg': 'success', 'user_obj': user, 'token': token})
+            return self.render_to_response({'msg': 'success', 'user_obj': self.user, 'token': token})
         else:
             user, token = self.reg_user()
             return self.render_to_response({'msg': 'success', 'user_obj': user, 'token': token})
