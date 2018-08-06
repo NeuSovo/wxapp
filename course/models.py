@@ -2,6 +2,8 @@ from django.db import models
 from simditor.fields import RichTextField
 # Create your models here.
 
+from user.models import User
+
 class CateGory(models.Model):
 
     class Meta:
@@ -86,3 +88,17 @@ class CourseBanner(models.Model):
     banner_title = models.CharField(max_length=50, verbose_name='轮播标题')
     banner_img = models.ImageField(upload_to="coursebanner", verbose_name='轮播图', default='none', null=True)
     banner_course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, verbose_name='关联的课程', help_text='点击跳转到于此关联的课程，可以填空')
+
+
+class CourseApply(models.Model):
+
+    class Meta:
+        verbose_name = "CourseApply"
+        verbose_name_plural = "CourseApplys"
+
+    def __str__(self):
+        return str(self.apply_course) + ':' + str(self.apply_user)
+
+    apply_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    apply_course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    apply_time = models.DateTimeField(auto_now_add=True)
