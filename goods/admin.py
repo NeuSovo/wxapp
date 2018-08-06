@@ -19,7 +19,7 @@ class GoodsAdmin(admin.ModelAdmin):
         Admin View for Goods
     '''
     list_display = ('id', 'name', 'category', 'now_price', 'top', 'goods_status')
-    list_filter = ('category', 'top', 'create_time', 'goods_status')
+    list_filter = ('category', 'create_time', 'goods_status')
     search_fields = ('name',)
     readonly_fields = ('create_time', 'update_time',)
 

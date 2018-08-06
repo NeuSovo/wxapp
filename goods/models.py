@@ -21,7 +21,7 @@ class Goods(models.Model):
     class Meta:
         verbose_name = "商品"
         verbose_name_plural = "商品"
-        ordering = ['top','-update_time', '-create_time']
+        ordering = ['-top','-update_time', '-create_time']
 
     goods_status_choices = (
         (0, '下架'),
@@ -45,7 +45,7 @@ class Goods(models.Model):
     now_price = models.DecimalField(max_digits=5, decimal_places=2, verbose_name='现价')
     goods_status = models.IntegerField(verbose_name='商品状态', choices=goods_status_choices, default=1)
     inventory = models.IntegerField(verbose_name='库存', default=0)
-    top = models.IntegerField(verbose_name='置顶方案', choices=top_choices,default=2)
+    top = models.IntegerField(verbose_name='置顶方案', default=0, help_text='数字越大商品越靠前')
     goods_desc = models.TextField(null=True, blank=True, verbose_name='简单描述')
 
     def is_pintuan(self):
