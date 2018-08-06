@@ -1,3 +1,4 @@
+from django.http import JsonResponse, Http404
 from django.views.generic import DetailView, FormView, ListView, View
 from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
                        MultipleJsonResponseMixin)
@@ -54,7 +55,11 @@ class CourseChapterView(JsonResponseMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(CourseChapterView, self).get_context_data(**kwargs)
         context['chapter_list'] = serializer(
-            [{'chapter': i, 'videos': i.coursechaptervideo_set.all()} for i in self.object.coursechapter_set.all()],
+            [{'chapter': i, 'videos': serializer(i.coursechaptervideo_set.all(), exclude_attr=('chapter', ))} for i in self.object.coursechapter_set.all()],
             exclude_attr=('course', ))
         return context
 
+
+def all_category_view(request):
+    all_cate = CateGory.objects.all()
+    return JsonResponse({'lists': serializer(all_cate)})
