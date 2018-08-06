@@ -44,17 +44,27 @@ class CourseIndexView(JsonResponseMixin, View):
         return self.render_to_response({'index': result})
 
 
-class CourseDetailView(JsonResponseMixin, DetailView):
+class CourseDetailView(JsonResponseMixin, DetailView, CheckUserWrap):
     model = CourseDetail
     pk_url_kwarg = 'course_id'
+    
+    def get_context_data(self, **kwargs):
+        if not self.wrap_check_token_result():
+            self.user = None
+        context = super(CourseDetailView, self).get_context_data(**kwargs)
+        context['is_apply'] = CourseApply.objects.filter(apply_user=self.user, apply_course=self.object.course).exists()
+        return context
 
 
-class CourseChapterView(JsonResponseMixin, DetailView):
+class CourseChapterView(JsonResponseMixin, DetailView, CheckUserWrap):
     model = Course
     pk_url_kwarg = 'course_id'
 
     def get_context_data(self, **kwargs):
+        if not self.wrap_check_token_result():
+            self.user = None
         context = super(CourseChapterView, self).get_context_data(**kwargs)
+        context['is_apply'] = CourseApply.objects.filter(apply_user=self.user, apply_course=self.object).exists()
         context['chapter_list'] = serializer(
             [{'chapter': i, 'videos': serializer(i.coursechaptervideo_set.all(), exclude_attr=('chapter', ))} for i in self.object.coursechapter_set.all()],
             exclude_attr=('course', ))
