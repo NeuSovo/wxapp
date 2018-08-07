@@ -53,6 +53,7 @@ class SimpleOrder(BaseOrder):
     receive_address  = models.CharField(max_length=100, verbose_name='收货人地址')
 
     order_remarks = models.TextField(null=True, blank=True, verbose_name='留言/备注')
+    tracking_company = models.CharField(max_length=20, blank=True, verbose_name='快递公司')
     tracking_number = models.BigIntegerField(null=True, blank=True, verbose_name='快递单号')
     transaction_id = models.CharField(max_length=32, null=True, blank=True, verbose_name='微信订单号')
     pay_time = models.DateTimeField(null=True, blank=True, verbose_name='支付时间')
