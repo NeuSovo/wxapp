@@ -47,8 +47,8 @@ class CourseDetail(models.Model):
 class CourseChapter(models.Model):
 
     class Meta:
-        verbose_name = "课程章节"
-        verbose_name_plural = "课程章节"
+        verbose_name = "章节视频"
+        verbose_name_plural = "章节视频"
 
     def __str__(self):
         return str(self.course) + ':' + self.chapter_title
@@ -60,8 +60,8 @@ class CourseChapter(models.Model):
 class CourseChapterVideo(models.Model):
 
     class Meta:
-        verbose_name = "课程章节视频"
-        verbose_name_plural = "课程章节视频"
+        verbose_name = "视频"
+        verbose_name_plural = "视频"
 
     chapter = models.ForeignKey(CourseChapter, on_delete=models.CASCADE)
     video_title = models.CharField(max_length=50, verbose_name='视频标题')
@@ -79,26 +79,26 @@ class CourseChapterVideo(models.Model):
 class CourseBanner(models.Model):
 
     class Meta:
-        verbose_name = "课程banner"
-        verbose_name_plural = "课程banner"
+        verbose_name = "课程轮播图"
+        verbose_name_plural = "课程轮播图"
 
     def __str__(self):
-        pass
+        return self.banner_title or '空标题'
 
-    banner_title = models.CharField(max_length=50, verbose_name='轮播标题')
+    banner_title = models.CharField(max_length=50, verbose_name='轮播标题', null=True, blank=True)
     banner_img = models.ImageField(upload_to="coursebanner", verbose_name='轮播图', default='none', null=True)
-    banner_course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, verbose_name='关联的课程', help_text='点击跳转到于此关联的课程，可以填空')
+    banner_course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='关联的课程', help_text='点击跳转到于此关联的课程，可以填空')
 
 
 class CourseApply(models.Model):
 
     class Meta:
-        verbose_name = "CourseApply"
-        verbose_name_plural = "CourseApplys"
+        verbose_name = "课程报名表"
+        verbose_name_plural = "课程报名表"
 
     def __str__(self):
         return str(self.apply_course) + ':' + str(self.apply_user)
 
-    apply_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    apply_course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    apply_time = models.DateTimeField(auto_now_add=True)
+    apply_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name='报名用户')
+    apply_course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='报名课程')
+    apply_time = models.DateTimeField(auto_now_add=True, verbose_name='报名时间')

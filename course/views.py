@@ -91,6 +91,21 @@ class ApplyCourseView(JsonResponseMixin, View, CheckUserWrap):
         return self.render_to_response({'msg': 'ok'})
 
 
+class CourseBannerView(JsonResponseMixin, View):
+    model = CourseBanner
+    exclude_attr = ('banner_course',)
+    
+    def get(self, request, *args, **kwargs):
+        count = self.request.GET.get('count', 4)
+        try:
+            count = int(count)
+        except:
+            count = 4
+
+        qr = self.model.objects.all()[:count]
+        return self.render_to_response(qr)
+
+
 def all_category_view(request):
     all_cate = CateGory.objects.all()
     return JsonResponse({'lists': serializer(all_cate)})
