@@ -1,15 +1,16 @@
 import random
-from datetime import timedelta, datetime
-
-from weixin import WeixinPay, WeixinError
+from datetime import datetime, timedelta
+from user.models import User
 
 from django.db import models, transaction
 from django.utils import timezone
-from user.models import User
-from goods.models import PinTuanGoods, Goods
+from weixin import WeixinError, WeixinPay
+
+from goods.models import Goods, PinTuanGoods
 from order import tasks
 
-wx_pay = WeixinPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem') # 后两个参数可选
+wx_pay = WeixinPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem')  # 后两个参数可选
+
 
 class BaseOrder(models.Model):
 
@@ -44,13 +45,13 @@ class SimpleOrder(BaseOrder):
         return str(self.order_id)
 
     order_id = models.BigIntegerField(primary_key=True, verbose_name='订单编号')
-    order_type = models.IntegerField(choices=order_type_choices ,default=0, verbose_name='订单类型') 
+    order_type = models.IntegerField(choices=order_type_choices, default=0, verbose_name='订单类型')
     order_status = models.IntegerField(choices=order_status_choices, default=0, verbose_name='订单状态')
     total_price = models.DecimalField(max_digits=6, decimal_places=2, verbose_name='总价')
 
-    receive_name  = models.CharField(max_length=50, verbose_name='收货人')
-    receive_phone  = models.CharField(max_length=50, verbose_name='收货人电话')
-    receive_address  = models.CharField(max_length=100, verbose_name='收货人地址')
+    receive_name = models.CharField(max_length=50, verbose_name='收货人')
+    receive_phone = models.CharField(max_length=50, verbose_name='收货人电话')
+    receive_address = models.CharField(max_length=100, verbose_name='收货人地址')
 
     order_remarks = models.TextField(null=True, blank=True, verbose_name='留言/备注')
     tracking_company = models.CharField(max_length=20, blank=True, verbose_name='快递公司')
@@ -68,7 +69,8 @@ class SimpleOrder(BaseOrder):
         tmp_order = SimpleOrder()
         if not isinstance(user, User):
             return '用户错误'
-        receive_name, receive_phone, receive_address = kwargs.get('receive_name') or None, kwargs.get('receive_phone') or None , kwargs.get('receive_address') or None
+        receive_name, receive_phone, receive_address = kwargs.get('receive_name') or None, kwargs.get(
+            'receive_phone') or None, kwargs.get('receive_address') or None
         if not (receive_name != None and receive_phone != None and receive_address != None):
             return '收件人信息为空'
 
@@ -114,8 +116,8 @@ class SimpleOrder(BaseOrder):
                 return '数量错误，或库存不足'
 
             # 批量创建订单详细
-            goods_detail_list.append(SimpleOrderDetail(order=tmp_order, goods=goods, 
-                    goods_count=goods_count, goods_price=goods_price))
+            goods_detail_list.append(SimpleOrderDetail(order=tmp_order, goods=goods,
+                                                       goods_count=goods_count, goods_price=goods_price))
 
             # 减库存,加销量
             # 支付后在操作
@@ -169,13 +171,13 @@ class SimpleOrder(BaseOrder):
 
     def gen_orderid(self):
         return timezone.now().strftime("%Y%m%d") + str(self.order_type) + str(self.create_user.id)[-1] + \
-                str(random.randint(1000, 9999))
+            str(random.randint(1000, 9999))
 
 
 class PintuanOrder(BaseOrder):
     # [TODO] 拼团失效的订单进行退款 和设置订单状态
     # 过滤条件
-    # 
+    #
 
     class Meta:
         verbose_name = "拼团订单"
@@ -221,16 +223,19 @@ class PintuanOrder(BaseOrder):
     def create(user=None, is_new=False, pintuan_id=None, *args, **kwargs):
         if not isinstance(user, User):
             return False, '用户错误'
+
         try:
             goods_id = kwargs.get('goods_list')[0].get('goods_id')
             goods = Goods.objects.get(id=goods_id)
             goods.pintuangoods
         except Exception as e:
-            return '商品编号错误'
+            if is_new:
+                return '商品编号错误'
 
         # 限制购买措施，订单类型为拼团，同一用户，同一商品，状态>=0，都算为一个有效订单
         # 商品设置限制数小于等于0 则不限制用户购买数量
-        t_limit = SimpleOrderDetail.objects.filter(order__order_type=1, order__create_user=user, goods=goods, order__order_status__gte=0).count()
+        t_limit = SimpleOrderDetail.objects.filter(
+            order__order_type=1, order__create_user=user, goods=goods, order__order_status__gte=0).count()
         if goods.pintuangoods.limit > 0:
             if t_limit > goods.pintuangoods.limit:
                 return '超过限制数量'
@@ -291,7 +296,8 @@ class PintuanOrder(BaseOrder):
                 self.done_time = timezone.now()
                 self.save()
             if self.create_user == user:
-                tasks.expire_pt_task.apply_async((self.pintuan_id, ), eta=datetime.utcnow() + timedelta(hours=int(self.pintuan_goods.effective)))
+                tasks.expire_pt_task.apply_async((self.pintuan_id, ), eta=datetime.utcnow() +
+                                                 timedelta(hours=int(self.pintuan_goods.effective)))
         else:
             if self.create_user == user:
                 self.delete()
@@ -304,7 +310,7 @@ class PinTuan(models.Model):
     class Meta:
         verbose_name = "参团订单"
         verbose_name_plural = "参团订单"
-    
+
     pintuan_order = models.ForeignKey(PintuanOrder, on_delete=models.CASCADE)
     simple_order = models.OneToOneField(SimpleOrder, on_delete=models.CASCADE, verbose_name='订单')
 

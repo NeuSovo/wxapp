@@ -1,6 +1,8 @@
-from django.utils import timezone
 from celery.decorators import task
+from django.utils import timezone
+
 from order import models
+
 
 """
 异步定时任务，来处理过期无效拼团订单
@@ -15,6 +17,7 @@ example:
 [TODO]: RETRY , Error handle
 """
 
+
 @task
 def update_order_status(order_id):
     try:
@@ -27,7 +30,7 @@ def update_order_status(order_id):
 
 
 @task
-def expire_pt_task(pt_id = None):
+def expire_pt_task(pt_id=None):
     try:
         pt = models.PintuanOrder.objects.get(pintuan_id=pt_id)
     except Exception as e:
@@ -42,7 +45,7 @@ def expire_pt_task(pt_id = None):
 @task
 def delete_unpay_order(order_id=None):
     # 如果15分钟内未收到微信通知，则[删除]此笔未支付订单
-    # 
+    #
     delete = {}
     try:
         order = models.SimpleOrder.objects.get(order_id=order_id)
@@ -50,11 +53,11 @@ def delete_unpay_order(order_id=None):
         raise {'msg': 'order not exists', 'order_id': order_id}
 
     if order.order_status != 0:
-        return 
+        return
     if order.order_type == 1:
         # 测试，如果是拼团的删除拼团单
         if order.pintuan.pintuan_order.create_user_id == order.create_user_id:
             order.pintuan.pintuan_order.delete()
 
-    delete = order.delete()    
+    delete = order.delete()
     return {'msg': 'ok', 'delete': delete}

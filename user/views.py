@@ -1,15 +1,16 @@
-from dss.Serializer import serializer
-from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
-                       MultipleJsonResponseMixin)
-
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.generic import (CreateView, FormView, ListView, UpdateView,
                                   View)
+from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
+                       MultipleJsonResponseMixin)
+from dss.Serializer import serializer
 
-from .auth import WechatSdk, UserWrap, CheckUserWrap
+from order.models import PintuanOrder, SimpleOrder
+
+from .auth import CheckUserWrap, UserWrap, WechatSdk
 from .models import *
-from order.models import SimpleOrder, PintuanOrder
+
 # Create your views here.
 
 
@@ -67,7 +68,7 @@ class UserOrderView(MultipleJsonResponseMixin, ListView, CheckUserWrap):
 class PinTuanOrderView(MultipleJsonResponseMixin, ListView, CheckUserWrap):
     model = PintuanOrder
     paginate_by = 15
-    exclude_attr = ('create_user', 'category_id','goods_id')
+    exclude_attr = ('create_user', 'category_id', 'goods_id')
 
     def get_queryset(self):
         if not self.wrap_check_token_result():
@@ -89,7 +90,7 @@ class PinTuanOrderView(MultipleJsonResponseMixin, ListView, CheckUserWrap):
             kwargs['done_time__isnull'] = True
             kwargs['expire_time__lte'] = timezone.now()
 
-        print (kwargs)
+        print(kwargs)
         queryset = super(PinTuanOrderView, self).get_queryset()
 
         queryset = queryset.filter(pintuan__simple_order__create_user=self.user, **kwargs)
