@@ -1,6 +1,8 @@
-from django.utils import timezone
 from celery.decorators import task
+from django.utils import timezone
+
 from order import models
+
 
 """
 异步定时任务，来处理过期无效拼团订单

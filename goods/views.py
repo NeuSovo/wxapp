@@ -1,16 +1,16 @@
-from django.utils import timezone
+from user.auth import CheckUserWrap
+from user.tools import wxapp_redis
+
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
-from django.http import JsonResponse, Http404
+from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.generic import DetailView, FormView, ListView, View
 from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
                        MultipleJsonResponseMixin)
-from django.utils.translation import gettext as _
-
 from dss.Serializer import serializer
 
 from .models import *
-from user.tools import wxapp_redis
-from user.auth import CheckUserWrap
 
 
 class GoodsListView(MultipleJsonResponseMixin, ListView):
@@ -74,7 +74,8 @@ class GoodsListView(MultipleJsonResponseMixin, ListView):
             if info['is_pintuan']:
                 info['pintuan_info'] = serializer(i.pintuangoods, exclude_attr=('goods', 'goods_id'),
                                                   datetime_format=self.datetime_format)
-                info['pintuan_info']['participate_count'] = i.simpleorderdetail_set.filter(order__order_type=1).count()
+                info['pintuan_info']['participate_count'] = i.simpleorderdetail_set.filter(
+                    order__order_type=1).count()
             else:
                 info['pintuan_info'] = {}
             goods_list.append(info)

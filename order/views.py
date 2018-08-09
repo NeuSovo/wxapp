@@ -1,15 +1,15 @@
 import json
 from datetime import timedelta
+from user.auth import CheckUserWrap
+
+from django.http import Http404, JsonResponse
+from django.utils import timezone
+from django.views.generic import CreateView, ListView, View
 from dss.Mixin import JsonResponseMixin
 from dss.Serializer import serializer
 
-from django.http import JsonResponse, Http404
-from django.views.generic import CreateView, ListView, View
-from django.utils import timezone
-
 from .models import *
 from .tasks import expire_pt_task
-from user.auth import CheckUserWrap
 
 
 class SimpleOrderView(JsonResponseMixin, CreateView, CheckUserWrap):

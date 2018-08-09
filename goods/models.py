@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from simditor.fields import RichTextField
+
 # Create your models here.
 
 

@@ -1,10 +1,11 @@
-import time
-import redis
 import random
-import requests
-from tenacity import *
+import time
 from hashlib import sha256
+
+import redis
+import requests
 from django.conf import settings
+from tenacity import *
 
 try:
     random = random.SystemRandom()

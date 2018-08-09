@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
 from .models import *
 
 
@@ -39,7 +38,8 @@ class SimpleOrderAdmin(admin.ModelAdmin):
     '''
         Admin View for SimpleOrder
     '''
-    list_display = ('order_id', 'order_type', 'order_status', 'create_time', 'create_user',)
+    list_display = ('order_id', 'order_type', 'order_status',
+                    'create_time', 'create_user',)
     list_filter = ('order_type', 'order_status', 'create_time')
     inlines = [
         SimpleOrderDetail,

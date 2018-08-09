@@ -1,12 +1,12 @@
 import random
-from datetime import timedelta, datetime
-
-from weixin import WeixinPay, WeixinError
+from datetime import datetime, timedelta
+from user.models import User
 
 from django.db import models, transaction
 from django.utils import timezone
-from user.models import User
-from goods.models import PinTuanGoods, Goods
+from weixin import WeixinError, WeixinPay
+
+from goods.models import Goods, PinTuanGoods
 from order import tasks
 
 wx_pay = WeixinPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem')  # 后两个参数可选
