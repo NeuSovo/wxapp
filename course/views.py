@@ -1,10 +1,13 @@
-from django.http import JsonResponse, Http404
+from user.auth import CheckUserWrap
+
+from django.http import Http404, JsonResponse
 from django.views.generic import DetailView, FormView, ListView, View
 from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
                        MultipleJsonResponseMixin)
 from dss.Serializer import serializer
+
 from .models import *
-from user.auth import CheckUserWrap
+
 
 # Create your views here.
 class CourseListView(MultipleJsonResponseMixin, ListView):

@@ -1,8 +1,8 @@
+from user.models import User
+
 from django.db import models
 from simditor.fields import RichTextField
-# Create your models here.
 
-from user.models import User
 
 class CateGory(models.Model):
 
