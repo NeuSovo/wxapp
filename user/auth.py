@@ -4,6 +4,7 @@ from django.conf import settings
 from .models import User
 from .tools import *
 
+
 class WechatSdk:
     APPID = ''
     SECRET = ''
@@ -47,7 +48,7 @@ class UserWrap:
             self.msg = 'param error'
             return
 
-        code =body.get('code')
+        code = body.get('code')
         wx = WechatSdk(code=code)
         self.nick_name = body.get('nick_name', 'nick_name')
         self.avatar_url = body.get('avatar_url', 'https://demo.ava')
@@ -69,12 +70,12 @@ class UserWrap:
 
     def gen_token(self, user):
         token = get_random_string(64)
-        wxapp_redis.set(':'.join(['wxapp','token', token]), user.openid, ex=TOKEN_EXPIRE_HOUR * 3600)
+        wxapp_redis.set(':'.join(['wxapp', 'token', token]), user.openid, ex=TOKEN_EXPIRE_HOUR * 3600)
         return token
 
     def update_profile(self):
-        self.user.nick_name=self.nick_name
-        self.user.avatar_url=self.avatar_url
+        self.user.nick_name = self.nick_name
+        self.user.avatar_url = self.avatar_url
         self.user.save()
 
 
@@ -105,8 +106,8 @@ class CheckUserWrap:
 
     def get_user_by_token(self):
         openid = user = None
-        if wxapp_redis.exists(':'.join(['wxapp','token', self.token])):
-            openid = wxapp_redis.get(':'.join(['wxapp','token', self.token])).decode('utf-8')
+        if wxapp_redis.exists(':'.join(['wxapp', 'token', self.token])):
+            openid = wxapp_redis.get(':'.join(['wxapp', 'token', self.token])).decode('utf-8')
 
         if openid:
             try:

@@ -11,6 +11,7 @@ from .models import *
 from .tasks import expire_pt_task
 from user.auth import CheckUserWrap
 
+
 class SimpleOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
     model = SimpleOrder
     exclude_attr = ('openid', 'last_login', 'reg_date', 'order', 'category_id')
@@ -84,18 +85,20 @@ class PinTuanOrderView(JsonResponseMixin, CreateView, CheckUserWrap):
                 is_join = True
                 join_user_order = i.simple_order
             join_user.append(serializer(user, exclude_attr=('reg_date', 'last_login', 'openid')))
-        
+
         pintaun_goods = pintuan.pintuan_goods
         # 拼团的基本信息
-        pintuan_info = serializer(pintuan, exclude_attr=('pintuan_goods', 'pintuan_goods_id', 'create_user_id', 
-                    'reg_date', 'last_login', 'openid'), datetime_format=self.datetime_format)
+        pintuan_info = serializer(pintuan, exclude_attr=('pintuan_goods', 'pintuan_goods_id', 'create_user_id',
+                                                         'reg_date', 'last_login', 'openid'), datetime_format=self.datetime_format)
         pintuan_info['join_count'] = len(join_user)
         pintuan_info['is_join'] = is_join
         pintuan_info['pintuan_count'] = pintaun_goods.pintuan_count
-        pintuan_info['can_join'] = pintuan_info['join_count'] < pintuan_info['pintuan_count'] and timezone.now() < pintuan.expire_time if not is_join else False
+        pintuan_info['can_join'] = pintuan_info['join_count'] < pintuan_info['pintuan_count'] and timezone.now(
+        ) < pintuan.expire_time if not is_join else False
 
         # 参与拼团的基本商品信息
-        pintuan_goods_info = serializer(pintaun_goods, exclude_attr=('pintuan_count', 'effective'), datetime_format=self.datetime_format)
+        pintuan_goods_info = serializer(pintaun_goods, exclude_attr=(
+            'pintuan_count', 'effective'), datetime_format=self.datetime_format)
 
         info['pintuan_info'] = pintuan_info
         info['pintuan_goods_info'] = pintuan_goods_info

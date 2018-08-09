@@ -4,6 +4,7 @@ from django.contrib import admin
 # Register your models here.
 from .models import *
 
+
 class GoodsProfileAdmin(admin.StackedInline):
     model = GoodsProfile
     readonly_fields = ('sale_count', 'view_count', 'love_count')
@@ -93,5 +94,6 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
     # raw_id_fields = ('',)
     # readonly_fields = ('',)
     # search_fields = ('',)
+
 
 admin.site.register(CateGory)

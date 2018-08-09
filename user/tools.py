@@ -40,7 +40,6 @@ def get_random_string(length=12,
     return ''.join(random.choice(allowed_chars) for i in range(length))
 
 
-
 @retry(retry=retry_if_exception_type(requests.exceptions.ConnectionError), stop=(stop_after_attempt(3) | stop_after_delay(3)))
 def request_jscode(params):
     try:
