@@ -1,10 +1,11 @@
-import time
-import redis
 import random
-import requests
-from tenacity import *
+import time
 from hashlib import sha256
+
+import redis
+import requests
 from django.conf import settings
+from tenacity import *
 
 try:
     random = random.SystemRandom()
@@ -38,7 +39,6 @@ def get_random_string(length=12,
             ).digest()
         )
     return ''.join(random.choice(allowed_chars) for i in range(length))
-
 
 
 @retry(retry=retry_if_exception_type(requests.exceptions.ConnectionError), stop=(stop_after_attempt(3) | stop_after_delay(3)))

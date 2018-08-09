@@ -1,6 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
 from .models import *
 
 
@@ -15,6 +14,7 @@ class SimpleOrderDetail(admin.TabularInline):
             if obj.order_type == 1:
                 return 1
         return self.max_num
+
 
 class PinTuanDetail(admin.StackedInline):
     model = PinTuan
@@ -38,16 +38,17 @@ class SimpleOrderAdmin(admin.ModelAdmin):
     '''
         Admin View for SimpleOrder
     '''
-    list_display = ('order_id', 'order_type', 'order_status', 'create_time', 'create_user',)
+    list_display = ('order_id', 'order_type', 'order_status',
+                    'create_time', 'create_user',)
     list_filter = ('order_type', 'order_status', 'create_time')
     inlines = [
         SimpleOrderDetail,
     ]
     # raw_id_fields = ('',)
-    readonly_fields = ('order_id', 'done_time', 'create_time', 'transaction_id', 
-        'pay_time', 'create_user', 'order_type', 'total_price', 'order_remarks')
+    readonly_fields = ('order_id', 'done_time', 'create_time', 'transaction_id',
+                       'pay_time', 'create_user', 'order_type', 'total_price', 'order_remarks')
     # search_fields = ('',)
-    date_hierarchy  = 'create_time'
+    date_hierarchy = 'create_time'
 
     def get_queryset(self, request):
         qr = super().get_queryset(request)

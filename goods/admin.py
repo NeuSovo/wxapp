@@ -1,8 +1,8 @@
-from django.utils import timezone
 from django.contrib import admin
+from django.utils import timezone
 
-# Register your models here.
 from .models import *
+
 
 class GoodsProfileAdmin(admin.StackedInline):
     model = GoodsProfile
@@ -93,5 +93,6 @@ class PinTuanGoodsAdmin(admin.ModelAdmin):
     # raw_id_fields = ('',)
     # readonly_fields = ('',)
     # search_fields = ('',)
+
 
 admin.site.register(CateGory)
