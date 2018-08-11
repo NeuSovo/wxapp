@@ -1,5 +1,5 @@
 from user.auth import CheckUserWrap
-from user.tools import wxapp_redis
+from user.tools import wxapp_redis, is_action_allowed
 
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
@@ -151,6 +151,16 @@ class LoveGoodsView(JsonResponseMixin, View, CheckUserWrap):
         self.get_object()
         if not self.wrap_check_token_result():
             return self.render_to_response({'msg': self.msg})
+
+        # 限流策略
+        # 1 普通动态时间窗口限流，2 使用redis-cell 漏洞限流算法
+        # 第二种windows 不支持模块 先用第一种吧
+        # 第二种：
+        # a, b, c, d, e = wxapp_redis.execute_command("cl.throttle","userlove_{}".format(user.id), 15, 10, 60)
+        # if a:
+        #     return self.render_to_response({'msg': '你的操作太频繁了，请在{}秒后重试'.format(d)})
+        if not is_action_allowed(self.user.id, "userlove", 60, 30):
+            return self.render_to_response({'msg': '你的操作太频繁了，请在稍后重试'})
 
         key = ':'.join(['wxapp', 'goodslove', str(self.obj.id)])
         if not wxapp_redis.hexists(key, self.user.openid):
