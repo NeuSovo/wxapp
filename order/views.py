@@ -161,7 +161,7 @@ def pay_notify(request):
 
     if order.order_status == 0:
         if order.order_type == 1:
-            order.pintuan.pintuan_order.pay(**body)
-        order.pay(**body)
+            order.pintuan.pintuan_order.pay(**data)
+        order.pay(**data)
 
     return wx_pay.reply("OK", True)
