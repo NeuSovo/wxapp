@@ -1,14 +1,12 @@
-from django.shortcuts import render
 from django.utils import timezone
-from django.views.generic import (CreateView, FormView, ListView, UpdateView,
-                                  View)
-from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
+from django.views.generic import (CreateView, ListView, View)
+from dss.Mixin import (JsonResponseMixin,
                        MultipleJsonResponseMixin)
 from dss.Serializer import serializer
 
 from order.models import PintuanOrder, SimpleOrder
 
-from .auth import CheckUserWrap, UserWrap, WechatSdk
+from .auth import CheckUserWrap, UserWrap
 from .models import *
 
 # Create your views here.

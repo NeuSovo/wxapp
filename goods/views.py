@@ -1,12 +1,11 @@
 from user.auth import CheckUserWrap
-from user.tools import wxapp_redis, is_action_allowed
+from user.tools import is_action_allowed, wxapp_redis
 
 from django.http import Http404, JsonResponse
-from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView, FormView, ListView, View
-from dss.Mixin import (FormJsonResponseMixin, JsonResponseMixin,
+from django.views.generic import DetailView, ListView, View
+from dss.Mixin import (JsonResponseMixin,
                        MultipleJsonResponseMixin)
 from dss.Serializer import serializer
 

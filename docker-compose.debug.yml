@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  wxapp:
+    image: wxapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+        - 8080:8080

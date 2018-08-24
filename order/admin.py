@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import *
 
 
-class SimpleOrderDetail(admin.TabularInline):
+class SimpleOrderDetailTabul(admin.TabularInline):
     model = SimpleOrderDetail
     extra = 2
     can_delete = False
@@ -42,7 +42,7 @@ class SimpleOrderAdmin(admin.ModelAdmin):
                     'create_time', 'create_user',)
     list_filter = ('order_type', 'order_status', 'create_time')
     inlines = [
-        SimpleOrderDetail,
+        SimpleOrderDetailTabul,
     ]
     # raw_id_fields = ('',)
     readonly_fields = ('order_id', 'done_time', 'create_time', 'transaction_id',
@@ -79,7 +79,7 @@ class PintuanOrderAdmin(admin.ModelAdmin):
     '''
 
     def get_pintuan_status(self, obj):
-        status, msg = obj.is_effective()
+        _, msg = obj.is_effective()
         return msg
     get_pintuan_status.short_description = '拼团状态'
 
