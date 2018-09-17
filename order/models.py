@@ -1,3 +1,4 @@
+import time
 import random
 from datetime import datetime, timedelta
 from user.models import User
@@ -170,8 +171,11 @@ class SimpleOrder(BaseOrder):
             pass
 
     def gen_orderid(self):
-        return timezone.now().strftime("%Y%m%d") + str(self.order_type) + str(self.create_user.id)[-1] + \
-            str(random.randint(1000, 9999))
+        # return timezone.now().strftime("%Y%m%d") + str(self.order_type) + str(self.create_user.id)[-1] + \
+        #     str(random.randint(1000, 9999))
+
+        return str(random.randint(1000,9999)) + str(round(time.time() * 1000)) [-4:] + \
+               str(self.create_user_id)[-1] + str(self.order_type) + timezone.now().strftime("%m%d")
 
 
 class PintuanOrder(BaseOrder):
