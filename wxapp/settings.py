@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
   
-  	'django_celery_results',
     'simditor',
     'user',
     'goods',
@@ -81,18 +80,18 @@ WSGI_APPLICATION = 'wxapp.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-   'default': {
-       'ENGINE': 'django.db.backends.sqlite3',
-       'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-   }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'wxapp',
-    #     'USER': 'wxapp',
-    #     'PASSWORD': '123456',
-    #     'HOST': 'localhost',
-    #     'PORT': '3306',
-    # }
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#    }
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wxapp',
+        'USER': 'root',
+        'PASSWORD': '123456',
+        'HOST': 'mysql_db',
+        'PORT': '3306',
+    }
 }
 
 
@@ -139,7 +138,7 @@ STATIC_ROOT = BASE_DIR + '/static'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'
 
-BROKER_URL = 'redis://localhost:6379/0'
+BROKER_URL = 'redis://redis_db:6379/0'
 
 # CELERY_IGNORE_RESULT = True
 CELERY_RESULT_BACKEND = 'django-cache'

@@ -4,7 +4,10 @@ git+https://github.com/zxh326/django-simple-serializer.git
 git+https://github.com/istommao/django-simditor.git
 requests
 redis
-django-celery-results
+celery
 Pillow
 tenacity
 weixin-python
+uwsgi
+gevent
+mysqlclient

@@ -13,7 +13,7 @@ try:
 except NotImplementedError:
     using_sysrandom = False
 
-wxapp_redis = redis.StrictRedis(host='127.0.0.1', port=6379, db=0)
+wxapp_redis = redis.StrictRedis(host='redis_db', port=6379, db=0)
 TOKEN_EXPIRE_HOUR = 72
 
 
