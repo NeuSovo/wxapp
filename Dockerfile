@@ -10,20 +10,18 @@ FROM python:3.6-slim-stretch
 
 LABEL Name=wxapp Version=0.0.1
 
-COPY  . /app
-WORKDIR /app
+COPY  . /wxapp
+WORKDIR /wxapp
 
 RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
         git gcc g++ make default-libmysqlclient-dev && \
-    pip install --no-cache-dir -r requirements.txt && \
     apt-get autoremove -qq -y --purge && \
-    rm -rf /var/cache/apt /var/lib/apt/lists && \
+    rm -rf /var/cache/apt /var/lib/apt/lists
+    
+RUN pip install --no-cache-dir -r requirements.txt && \
     python3 manage.py collectstatic --no-input
 
+RUN adduser --disabled-password --gecos '' wxuser
 
 EXPOSE 8000
-
-CMD python3 manage.py makemigrations user course goods order&& \
-    python3 manage.py migrate && \
-    uwsgi uwsgi.ini

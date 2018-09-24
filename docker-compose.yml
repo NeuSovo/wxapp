@@ -27,9 +27,10 @@ services:
     container_name: wxapp_web
     image: wxapp
     volumes:
-      - .:/app
-      - django_static:/app/static
+      - .:/wxapp
+      - django_static:/wxapp/static
     build: .
+    command: ./configs/bin/web.sh
     depends_on:
       - mysql_db
       - redis_db
@@ -40,8 +41,8 @@ services:
     container_name: wxapp_worker
     build: .
     volumes:
-      - .:/app
-    command: ./configs/celert/bin.sh
+      - .:/wxapp
+    command: ./configs/bin/celery.sh
     networks:
       - wxapp_network
     depends_on:
@@ -54,7 +55,7 @@ services:
     container_name: wxapp_nginx
     volumes:
       - ./configs/nginx/:/etc/nginx/conf.d
-      - django_static:/app/static
+      - django_static:/wxapp/static
     ports:
       - 8003:80
     networks:

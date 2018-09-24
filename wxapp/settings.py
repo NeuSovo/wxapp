@@ -140,8 +140,8 @@ MEDIA_URL = '/media/'
 
 BROKER_URL = 'redis://redis_db:6379/0'
 
-# CELERY_IGNORE_RESULT = True
-CELERY_RESULT_BACKEND = 'django-cache'
+CELERY_IGNORE_RESULT = True
+# CELERY_RESULT_BACKEND = 'django-cache'
 
 # celery内容等消息的格式设置
 CELERY_ACCEPT_CONTENT = ['application/json', ]
