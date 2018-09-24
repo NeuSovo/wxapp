@@ -49,6 +49,7 @@ class SimpleOrderAdmin(admin.ModelAdmin):
                        'pay_time', 'create_user', 'order_type', 'total_price', 'order_remarks')
     # search_fields = ('',)
     date_hierarchy = 'create_time'
+    ordering = ('create_time',)
 
     def get_queryset(self, request):
         qr = super().get_queryset(request)
