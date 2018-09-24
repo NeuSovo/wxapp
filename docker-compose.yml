@@ -29,6 +29,7 @@ services:
     volumes:
       - .:/wxapp
       - django_static:/wxapp/static
+      - media:/wxapp/media
     build: .
     command: ./configs/bin/web.sh
     depends_on:
@@ -56,6 +57,7 @@ services:
     volumes:
       - ./configs/nginx/:/etc/nginx/conf.d
       - django_static:/wxapp/static
+      - media:/wxapp/media
     ports:
       - 8003:80
     networks:
@@ -71,4 +73,5 @@ volumes:
   redis_data:
   django_static:
   mysql_data:
+  media:
     
