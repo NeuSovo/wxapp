@@ -25,12 +25,12 @@ services:
 
   web:
     container_name: wxapp_web
-    image: wxapp
+    image: zzde/wxapp
     volumes:
       - .:/wxapp
       - django_static:/wxapp/static
       - media:/wxapp/media
-    build: .
+    # build: .
     command: ./configs/bin/web.sh
     depends_on:
       - mysql_db
@@ -40,7 +40,8 @@ services:
 
   worker:
     container_name: wxapp_worker
-    build: .
+    image: zzde/wxapp
+    # build: .
     volumes:
       - .:/wxapp
     command: ./configs/bin/celery.sh

@@ -9,8 +9,7 @@ FROM python:3.6-slim-stretch
 #FROM continuumio/miniconda3
 
 LABEL Name=wxapp Version=0.0.1
-VOLUME [ "/wxapp" ]
-COPY  . /wxapp
+COPY  requirements.txt /wxapp/requirements.txt
 WORKDIR /wxapp
 
 RUN apt-get update -qq && \
@@ -19,8 +18,7 @@ RUN apt-get update -qq && \
     apt-get autoremove -qq -y --purge && \
     rm -rf /var/cache/apt /var/lib/apt/lists
     
-RUN pip install --no-cache-dir -r requirements.txt -i http://mirrors.tencentyun.com/pypi/simple --trusted-host mirrors.tencentyun.com&& \
-    python3 manage.py collectstatic --no-input
+RUN pip install --no-cache-dir -r requirements.txt -i http://mirrors.cloud.tencent.com/pypi/simple --trusted-host mirrors.cloud.tencent.com
 
 RUN adduser --disabled-password --gecos '' wxuser
 
