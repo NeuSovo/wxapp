@@ -15,7 +15,8 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
+REDIS_DB_HOST = os.getenv('REDIS_DB_HOST')
+REDIS_DB_PORT = os.getenv('REDIS_DB_PORT')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -80,18 +81,10 @@ WSGI_APPLICATION = 'wxapp.wsgi.application'
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
 DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#    }
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wxapp',
-        'USER': 'root',
-        'PASSWORD': '123456',
-        'HOST': 'mysql_db',
-        'PORT': '3306',
-    }
+   'default': {
+       'ENGINE': 'django.db.backends.sqlite3',
+       'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+   }
 }
 
 
@@ -138,7 +131,7 @@ STATIC_ROOT = BASE_DIR + '/static'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'
 
-BROKER_URL = 'redis://redis_db:6379/0'
+BROKER_URL = 'redis://'+ REDIS_DB_HOST + ':' + REDIS_DB_PORT + '/0'
 
 CELERY_IGNORE_RESULT = True
 # CELERY_RESULT_BACKEND = 'django-cache'

@@ -1,78 +1,37 @@
-version: '2.1'
+version: '3'
 
 services:
-  redis_db:
-    image: redis
-    container_name: wxapp_redis
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - redis_data:/data
-    networks:
-      - wxapp_network
-
-  mysql_db:
-    image: mysql:5.7
-    container_name: wxapp_mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: wxapp
-    volumes:
-      - ./configs/mysqld/mysqld_charset.cnf:/etc/mysql/conf.d/mysqld_charset.cnf
-      - mysql_data:/var/lib/mysql
-    networks:
-      - wxapp_network
-
   web:
-    container_name: wxapp_web
     image: zzde/wxapp
     volumes:
       - .:/wxapp
       - django_static:/wxapp/static
       - media:/wxapp/media
+    ports:
+      - 8000:8000
+    environment:
+      - REDIS_DB_HOST=192.168.65.1
+      - REDIS_DB_PORT=3306
     # build: .
     command: ./configs/bin/web.sh
-    depends_on:
-      - mysql_db
-      - redis_db
     networks:
       - wxapp_network
 
   worker:
-    container_name: wxapp_worker
     image: zzde/wxapp
     # build: .
+    environment:
+      - REDIS_DB_HOST=192.168.65.1
+      - REDIS_DB_PORT=3306
     volumes:
       - .:/wxapp
     command: ./configs/bin/celery.sh
     networks:
       - wxapp_network
-    depends_on:
-      - redis_db
-      - web
-    
-  nginx:
-    image: nginx
-    restart: always
-    container_name: wxapp_nginx
-    volumes:
-      - ./configs/nginx/:/etc/nginx/conf.d
-      - django_static:/wxapp/static
-      - media:/wxapp/media
-    ports:
-      - 8003:80
-    networks:
-      - wxapp_network
-    depends_on:
-      - web
-
 
 networks:
   wxapp_network:
 
 volumes:
-  redis_data:
   django_static:
-  mysql_data:
   media:
-    

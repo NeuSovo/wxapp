@@ -8,6 +8,3 @@ celery
 Pillow
 tenacity
 weixin-python
-uwsgi
-gevent
-mysqlclient
